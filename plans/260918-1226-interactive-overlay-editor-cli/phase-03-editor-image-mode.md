@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "Slint Editor — Image Mode"
-status: todo
+status: done
 priority: P1
 effort: "1d"
 dependencies: [1]
@@ -80,11 +80,11 @@ Lưu ý: `slint::include_modules!()` đặt trong `src/app/mod.rs` (lib) để c
 
 ## Todo
 
-- [ ] slint deps + build.rs, compile UI hiện có
-- [ ] ImageSession + tests
-- [ ] Mở rộng main_editor.slint (viewport, zoom, save/undo/redo, OCR panel, status, phím tắt)
-- [ ] bind_image_mode + worker thread OCR/redact
-- [ ] main.rs mới (path | capture)
+- [x] slint deps + build.rs, compile UI hiện có
+- [x] ImageSession + tests
+- [x] Mở rộng main_editor.slint (viewport, zoom, save/undo/redo, OCR panel, status, phím tắt)
+- [x] bind_image_mode + worker thread OCR/redact
+- [x] main.rs mới (path | capture)
 - [ ] Manual E2E
 
 ## Success Criteria

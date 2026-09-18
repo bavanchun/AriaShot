@@ -1,3 +1,4 @@
+pub mod app;
 pub mod compositor;
 pub mod timeline_ctrl;
 

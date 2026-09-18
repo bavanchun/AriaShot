@@ -6,101 +6,417 @@ export component MainEditorWindow inherits Window {
     height: 800px;
     background: #18181c;
 
+    // --- Existing properties ---
     in property <bool> is-video-mode: false;
-    in property <float> zoom-level: 1.0;
 
+    // --- Phase 3 new properties ---
+    in property <image> canvas-image;
+    in property <length> image-width: 0px;
+    in property <length> image-height: 0px;
+    in-out property <float> zoom-level: 1.0;
+    in property <string> status-text: "";
+    in property <bool> busy: false;
+    in property <string> ocr-text: "";
+    in property <bool> ocr-panel-visible: false;
+    in property <bool> can-undo: false;
+    in property <bool> can-redo: false;
+
+    // --- Existing callbacks ---
     callback copy-to-clipboard();
     callback save-image();
     callback auto-redact();
     callback perform-ocr();
 
-    VerticalLayout {
-        // Top Toolbar
-        Rectangle {
-            height: 44px;
-            background: #22222a;
-            border-bottom-width: 1px;
-            border-color: #32323e;
+    // --- Phase 3 new callbacks ---
+    callback undo();
+    callback redo();
+    callback copy-ocr-text();
+    callback zoom-in();
+    callback zoom-out();
+    callback zoom-fit();
+    callback zoom-actual();
 
+    // Keyboard shortcut handler
+    FocusScope {
+        key-pressed(event) => {
+            // ⌘Z / Ctrl+Z → Undo
+            if (event.text == "z" && event.modifiers.meta && !event.modifiers.shift) {
+                root.undo();
+                return accept;
+            }
+            // ⇧⌘Z / Ctrl+Shift+Z → Redo
+            if (event.text == "Z" && event.modifiers.meta && event.modifiers.shift) {
+                root.redo();
+                return accept;
+            }
+            // ⌘C / Ctrl+C → Copy
+            if (event.text == "c" && event.modifiers.meta) {
+                root.copy-to-clipboard();
+                return accept;
+            }
+            // ⌘S / Ctrl+S → Save
+            if (event.text == "s" && event.modifiers.meta) {
+                root.save-image();
+                return accept;
+            }
+            // ⌘= / Ctrl+= → Zoom In
+            if (event.text == "=" && event.modifiers.meta) {
+                root.zoom-in();
+                return accept;
+            }
+            // ⌘- / Ctrl+- → Zoom Out
+            if (event.text == "-" && event.modifiers.meta) {
+                root.zoom-out();
+                return accept;
+            }
+            // ⌘0 / Ctrl+0 → Fit
+            if (event.text == "0" && event.modifiers.meta) {
+                root.zoom-fit();
+                return accept;
+            }
+            // ⌘1 / Ctrl+1 → 100%
+            if (event.text == "1" && event.modifiers.meta) {
+                root.zoom-actual();
+                return accept;
+            }
+            return reject;
+        }
+
+        VerticalLayout {
+            // ═══════════ Top Toolbar ═══════════
+            Rectangle {
+                height: 44px;
+                background: #22222a;
+                border-width: 1px;
+                border-color: #32323e;
+
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    spacing: 8px;
+
+                    Text {
+                        text: "Camerashot";
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #ffffff;
+                        vertical-alignment: center;
+                    }
+
+                    Rectangle { /* Spacer */ }
+
+                    // --- Zoom controls ---
+                    Rectangle {
+                        width: 32px;
+                        height: 28px;
+                        background: root.busy ? #333340 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: "−";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 700;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.zoom-out(); }
+                        }
+                    }
+
+                    Text {
+                        text: @tr("{}%", Math.round(root.zoom-level * 100));
+                        color: #aaaacc;
+                        font-size: 12px;
+                        vertical-alignment: center;
+                        width: 46px;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle {
+                        width: 32px;
+                        height: 28px;
+                        background: root.busy ? #333340 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: "+";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 700;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.zoom-in(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 40px;
+                        height: 28px;
+                        background: root.busy ? #333340 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: "Fit";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.zoom-fit(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 48px;
+                        height: 28px;
+                        background: root.busy ? #333340 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: "100%";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.zoom-actual(); }
+                        }
+                    }
+
+                    // --- Divider ---
+                    Rectangle {
+                        width: 1px;
+                        height: 20px;
+                        background: #3a3a48;
+                    }
+
+                    // --- Undo / Redo ---
+                    Rectangle {
+                        width: 56px;
+                        height: 28px;
+                        background: root.can-undo && !root.busy ? #4a4a5a : #333340;
+                        border-radius: 4px;
+                        Text {
+                            text: "Undo";
+                            color: root.can-undo && !root.busy ? #ffffff : #666680;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea {
+                            enabled: root.can-undo && !root.busy;
+                            clicked => { root.undo(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 56px;
+                        height: 28px;
+                        background: root.can-redo && !root.busy ? #4a4a5a : #333340;
+                        border-radius: 4px;
+                        Text {
+                            text: "Redo";
+                            color: root.can-redo && !root.busy ? #ffffff : #666680;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea {
+                            enabled: root.can-redo && !root.busy;
+                            clicked => { root.redo(); }
+                        }
+                    }
+
+                    // --- Divider ---
+                    Rectangle {
+                        width: 1px;
+                        height: 20px;
+                        background: #3a3a48;
+                    }
+
+                    // --- Actions ---
+                    Rectangle {
+                        width: 110px;
+                        height: 28px;
+                        background: root.busy ? #993a35 : #ff5f56;
+                        border-radius: 4px;
+                        Text {
+                            text: root.busy ? "Working…" : "Auto-Redact";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 600;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.auto-redact(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 70px;
+                        height: 28px;
+                        background: root.busy ? #333340 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: root.busy ? "…" : "OCR";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.perform-ocr(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 70px;
+                        height: 28px;
+                        background: root.busy ? #005ab5 : #0084ff;
+                        border-radius: 4px;
+                        Text {
+                            text: "Copy";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 600;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.copy-to-clipboard(); }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 70px;
+                        height: 28px;
+                        background: root.busy ? #2b6b38 : #39b54a;
+                        border-radius: 4px;
+                        Text {
+                            text: "Save";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 600;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.save-image(); }
+                        }
+                    }
+                }
+            }
+
+            // ═══════════ Center content: Viewport + optional OCR panel ═══════════
             HorizontalLayout {
-                padding-left: 12px;
-                padding-right: 12px;
-                spacing: 12px;
+                // Canvas viewport
+                Rectangle {
+                    background: #111114;
+                    clip: true;
 
-                Text {
-                    text: "Camerashot";
-                    font-size: 15px;
-                    font-weight: 800;
-                    color: #ffffff;
-                    vertical-alignment: center;
+                    Flickable {
+                        content-width: root.image-width * root.zoom-level;
+                        content-height: root.image-height * root.zoom-level;
+
+                        Image {
+                            source: root.canvas-image;
+                            width: root.image-width * root.zoom-level;
+                            height: root.image-height * root.zoom-level;
+                            image-rendering: root.zoom-level >= 2.0 ? pixelated : smooth;
+                        }
+                    }
                 }
 
-                Rectangle { /* Spacer */ }
+                // OCR panel (right side)
+                if root.ocr-panel-visible: Rectangle {
+                    width: 320px;
+                    background: #1e1e26;
+                    border-width: 1px;
+                    border-color: #32323e;
 
-                // Actions
-                Rectangle {
-                    width: 110px;
-                    height: 28px;
-                    background: #ff5f56;
-                    border-radius: 4px;
-                    Text {
-                        text: "Auto-Redact";
-                        color: #ffffff;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                        font-weight: 600;
-                    }
-                    TouchArea { clicked => { root.auto-redact(); } }
-                }
+                    VerticalLayout {
+                        padding: 12px;
+                        spacing: 8px;
 
-                Rectangle {
-                    width: 70px;
-                    height: 28px;
-                    background: #4a4a5a;
-                    border-radius: 4px;
-                    Text {
-                        text: "OCR";
-                        color: #ffffff;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                    TouchArea { clicked => { root.perform-ocr(); } }
-                }
+                        HorizontalLayout {
+                            height: 28px;
+                            spacing: 8px;
 
-                Rectangle {
-                    width: 70px;
-                    height: 28px;
-                    background: #0084ff;
-                    border-radius: 4px;
-                    Text {
-                        text: "Copy";
-                        color: #ffffff;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                        font-weight: 600;
+                            Text {
+                                text: "OCR Text";
+                                color: #ccccdd;
+                                font-size: 14px;
+                                font-weight: 700;
+                                vertical-alignment: center;
+                            }
+
+                            Rectangle { /* Spacer */ }
+
+                            Rectangle {
+                                width: 90px;
+                                height: 26px;
+                                background: #0084ff;
+                                border-radius: 4px;
+                                Text {
+                                    text: "Copy text";
+                                    color: #ffffff;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                    font-size: 12px;
+                                }
+                                TouchArea {
+                                    clicked => { root.copy-ocr-text(); }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: #141418;
+                            border-radius: 6px;
+
+                            Flickable {
+                                content-width: self.width;
+
+                                Text {
+                                    text: root.ocr-text;
+                                    color: #ddddee;
+                                    font-size: 13px;
+                                    wrap: word-wrap;
+                                    width: parent.width - 16px;
+                                    x: 8px;
+                                    y: 8px;
+                                }
+                            }
+                        }
                     }
-                    TouchArea { clicked => { root.copy-to-clipboard(); } }
                 }
             }
-        }
 
-        // Center Viewport (Canvas / Video Display)
-        Rectangle {
-            background: #111114;
-            clip: true;
+            // ═══════════ Status bar ═══════════
+            Rectangle {
+                height: 24px;
+                background: #1a1a22;
+                border-width: 1px;
+                border-color: #2a2a36;
 
-            Text {
-                text: "Canvas & Video Viewport";
-                color: #555566;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-                font-size: 18px;
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 12px;
+
+                    Text {
+                        text: root.status-text;
+                        color: #888899;
+                        font-size: 12px;
+                        vertical-alignment: center;
+                    }
+                }
             }
-        }
 
-        // Bottom timeline for video mode
-        if root.is-video-mode: VideoTimelineView {
-            height: 120px;
+            // ═══════════ Bottom timeline for video mode ═══════════
+            if root.is-video-mode: VideoTimelineView {
+                height: 120px;
+            }
         }
     }
 }
