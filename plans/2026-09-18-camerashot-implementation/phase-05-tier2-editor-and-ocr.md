@@ -2,7 +2,7 @@
 phase: 5
 title: "Tier 2 Slint Editor, Video Timeline & Local OCR"
 description: "Implement the detached Slint desktop editor, the multi-track video timeline editor, embedded ONNX RapidOCR, Apple Vision FFI, and 11 PII regexes with atomic undo."
-status: "pending"
+status: "completed"
 owner: "ui-editor"
 ---
 

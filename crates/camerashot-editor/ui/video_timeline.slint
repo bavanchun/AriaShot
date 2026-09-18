@@ -1,0 +1,125 @@
+export component VideoTimelineView inherits Rectangle {
+    in property <float> current-time: 0.0;
+    in property <float> total-duration: 10.0;
+    in property <bool> is-playing: false;
+    in property <int> cut-count: 0;
+    in property <int> zoom-count: 0;
+    in property <int> censor-count: 0;
+
+    callback toggle-playback();
+    callback seek(float);
+    callback add-cut();
+    callback add-zoom();
+    callback add-censor();
+
+    height: 120px;
+    background: #1e1e24;
+    border-top-width: 1px;
+    border-color: #2e2e38;
+
+    VerticalLayout {
+        padding: 8px;
+        spacing: 6px;
+
+        // Playback controls row
+        HorizontalLayout {
+            height: 32px;
+            spacing: 12px;
+
+            Rectangle {
+                width: 70px;
+                height: 28px;
+                background: is-playing ? #e54d42 : #39b54a;
+                border-radius: 4px;
+
+                Text {
+                    text: is-playing ? "Pause" : "Play";
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    font-weight: 700;
+                }
+
+                TouchArea {
+                    clicked => { root.toggle-playback(); }
+                }
+            }
+
+            Text {
+                text: @tr("{0}s / {1}s", Math.round(root.current-time * 10.0) / 10.0, Math.round(root.total-duration * 10.0) / 10.0);
+                color: #e0e0e0;
+                vertical-alignment: center;
+                font-size: 13px;
+            }
+
+            Rectangle { /* Spacer */ }
+
+            // Action buttons
+            Rectangle {
+                width: 80px;
+                height: 28px;
+                background: #3a3a48;
+                border-radius: 4px;
+                Text {
+                    text: "+ Cut";
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+                TouchArea { clicked => { root.add-cut(); } }
+            }
+
+            Rectangle {
+                width: 80px;
+                height: 28px;
+                background: #3a3a48;
+                border-radius: 4px;
+                Text {
+                    text: "+ Zoom";
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+                TouchArea { clicked => { root.add-zoom(); } }
+            }
+
+            Rectangle {
+                width: 80px;
+                height: 28px;
+                background: #3a3a48;
+                border-radius: 4px;
+                Text {
+                    text: "+ Censor";
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+                TouchArea { clicked => { root.add-censor(); } }
+            }
+        }
+
+        // Timeline tracks background & scrubber
+        Rectangle {
+            height: 60px;
+            background: #141418;
+            border-radius: 6px;
+            clip: true;
+
+            // Scrubber playhead line
+            Rectangle {
+                x: (root.current-time / Math.max(0.001, root.total-duration)) * parent.width - 1px;
+                width: 2px;
+                height: parent.height;
+                background: #0084ff;
+            }
+
+            TouchArea {
+                pointer-event(event) => {
+                    if (event.button == PointerEventButton.left) {
+                        root.seek((self.mouse-x / parent.width) * root.total-duration);
+                    }
+                }
+            }
+        }
+    }
+}

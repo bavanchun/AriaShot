@@ -1,0 +1,22 @@
+[package]
+name = "camerashot-editor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Tier 2 standalone canvas editor and multi-track video timeline."
+
+[dependencies]
+camerashot-core = { path = "../camerashot-core" }
+camerashot-media = { path = "../camerashot-media" }
+camerashot-ocr = { path = "../camerashot-ocr" }
+camerashot-platform = { path = "../camerashot-platform" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+parking_lot = { workspace = true }
+tiny-skia = { workspace = true }
+image = { workspace = true }
+

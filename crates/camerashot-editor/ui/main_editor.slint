@@ -1,0 +1,106 @@
+import { VideoTimelineView } from "video_timeline.slint";
+
+export component MainEditorWindow inherits Window {
+    title: "Camerashot Editor";
+    width: 1200px;
+    height: 800px;
+    background: #18181c;
+
+    in property <bool> is-video-mode: false;
+    in property <float> zoom-level: 1.0;
+
+    callback copy-to-clipboard();
+    callback save-image();
+    callback auto-redact();
+    callback perform-ocr();
+
+    VerticalLayout {
+        // Top Toolbar
+        Rectangle {
+            height: 44px;
+            background: #22222a;
+            border-bottom-width: 1px;
+            border-color: #32323e;
+
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 12px;
+
+                Text {
+                    text: "Camerashot";
+                    font-size: 15px;
+                    font-weight: 800;
+                    color: #ffffff;
+                    vertical-alignment: center;
+                }
+
+                Rectangle { /* Spacer */ }
+
+                // Actions
+                Rectangle {
+                    width: 110px;
+                    height: 28px;
+                    background: #ff5f56;
+                    border-radius: 4px;
+                    Text {
+                        text: "Auto-Redact";
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        font-weight: 600;
+                    }
+                    TouchArea { clicked => { root.auto-redact(); } }
+                }
+
+                Rectangle {
+                    width: 70px;
+                    height: 28px;
+                    background: #4a4a5a;
+                    border-radius: 4px;
+                    Text {
+                        text: "OCR";
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.perform-ocr(); } }
+                }
+
+                Rectangle {
+                    width: 70px;
+                    height: 28px;
+                    background: #0084ff;
+                    border-radius: 4px;
+                    Text {
+                        text: "Copy";
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        font-weight: 600;
+                    }
+                    TouchArea { clicked => { root.copy-to-clipboard(); } }
+                }
+            }
+        }
+
+        // Center Viewport (Canvas / Video Display)
+        Rectangle {
+            background: #111114;
+            clip: true;
+
+            Text {
+                text: "Canvas & Video Viewport";
+                color: #555566;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                font-size: 18px;
+            }
+        }
+
+        // Bottom timeline for video mode
+        if root.is-video-mode: VideoTimelineView {
+            height: 120px;
+        }
+    }
+}

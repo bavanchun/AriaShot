@@ -1,7 +1,7 @@
 ---
 title: "Camerashot: Master Implementation Plan"
 description: "Implementation roadmap for Camerashot — high-performance cross-platform screenshot, screen recording, scroll capture, and annotation tool in Rust for macOS and Linux."
-status: "in-progress"
+status: "completed"
 created: "2026-09-18"
 total_phases: 5
 current_phase: 5
@@ -35,7 +35,7 @@ flowchart LR
 | [**Phase 2**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-02-tier1-overlay-and-vector-tools.md) | **Tier 1 Fast Overlay & 18 Vector Tools** | Instant <15ms overlay (`wlr-layer-shell`, `NSPanel` Level 257), `tiny-skia` 2D canvas, Chaikin smoothing ($N=8$, 2 passes), 18 tools, Beautify chrome. | **Completed** |
 | [**Phase 3**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-03-scroll-capture-engine.md) | **Deterministic Scroll Capture Engine** | Synthetic scroll (`libei`/`XTest`/`CGEvent`), `xxHash64` settlement check, 2D FFT Phase Correlation displacement, SAD margin/header filtering, -1px seam bias. | **Completed** |
 | [**Phase 4**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-04-screen-recording-and-audio.md) | **Screen Recording & Audio Engine** | Up to 120 FPS video streaming, PipeWire/CoreAudio loopback + mic capture, VA-API/NVENC/VideoToolbox hardware encoding, native Rust `gifski` export. | **Completed** |
-| [**Phase 5**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-05-tier2-editor-and-ocr.md) | **Tier 2 Slint Editor & Local OCR** | Slint standalone canvas editor, multi-track video timeline (Trim, Zoom punch with smoothstep, Censor blur, Speed ramps), embedded ONNX RapidOCR + Apple Vision, 11 PII regexes with atomic undo. | **In Progress** |
+| [**Phase 5**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-05-tier2-editor-and-ocr.md) | **Tier 2 Slint Editor & Local OCR** | Slint standalone canvas editor, multi-track video timeline (Trim, Zoom punch with smoothstep, Censor blur, Speed ramps), embedded ONNX RapidOCR + Apple Vision, 11 PII regexes with atomic undo. | **Completed** |
 
 ---
 
