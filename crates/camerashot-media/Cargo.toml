@@ -1,0 +1,15 @@
+[package]
+name = "camerashot-media"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "High-FPS screen recorder, hardware video encoder, audio mixer, and GIF exporter."
+
+[dependencies]
+camerashot-core = { path = "../camerashot-core" }
+camerashot-platform = { path = "../camerashot-platform" }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+parking_lot = { workspace = true }
+image = { workspace = true }

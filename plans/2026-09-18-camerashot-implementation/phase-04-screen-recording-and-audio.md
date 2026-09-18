@@ -2,7 +2,7 @@
 phase: 4
 title: "Screen Recording, Hardware Encoding & Audio Engine"
 description: "Implement high-FPS screen recording, PipeWire and CoreAudio system loopback + mic capture, VA-API/NVENC/VideoToolbox encoders, and native gifski GIF export."
-status: "pending"
+status: "completed"
 owner: "engine-media"
 ---
 

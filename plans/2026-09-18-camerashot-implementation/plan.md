@@ -4,7 +4,7 @@ description: "Implementation roadmap for Camerashot — high-performance cross-p
 status: "in-progress"
 created: "2026-09-18"
 total_phases: 5
-current_phase: 4
+current_phase: 5
 ---
 
 # Camerashot: Master Implementation Plan
@@ -34,8 +34,8 @@ flowchart LR
 | [**Phase 1**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-01-foundations-and-platform-core.md) | **Foundations & Platform Grabbers** | Cargo workspace setup, `camerashot-core` data models, `BoundarySnapIndex` edge detector, macOS SCK grabber, Linux MIT-SHM & PipeWire grabbers. | **Completed** |
 | [**Phase 2**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-02-tier1-overlay-and-vector-tools.md) | **Tier 1 Fast Overlay & 18 Vector Tools** | Instant <15ms overlay (`wlr-layer-shell`, `NSPanel` Level 257), `tiny-skia` 2D canvas, Chaikin smoothing ($N=8$, 2 passes), 18 tools, Beautify chrome. | **Completed** |
 | [**Phase 3**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-03-scroll-capture-engine.md) | **Deterministic Scroll Capture Engine** | Synthetic scroll (`libei`/`XTest`/`CGEvent`), `xxHash64` settlement check, 2D FFT Phase Correlation displacement, SAD margin/header filtering, -1px seam bias. | **Completed** |
-| [**Phase 4**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-04-screen-recording-and-audio.md) | **Screen Recording & Audio Engine** | Up to 120 FPS video streaming, PipeWire/CoreAudio loopback + mic capture, VA-API/NVENC/VideoToolbox hardware encoding, native Rust `gifski` export. | **In Progress** |
-| [**Phase 5**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-05-tier2-editor-and-ocr.md) | **Tier 2 Slint Editor & Local OCR** | Slint standalone canvas editor, multi-track video timeline (Trim, Zoom punch with smoothstep, Censor blur, Speed ramps), embedded ONNX RapidOCR + Apple Vision, 11 PII regexes with atomic undo. | Pending |
+| [**Phase 4**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-04-screen-recording-and-audio.md) | **Screen Recording & Audio Engine** | Up to 120 FPS video streaming, PipeWire/CoreAudio loopback + mic capture, VA-API/NVENC/VideoToolbox hardware encoding, native Rust `gifski` export. | **Completed** |
+| [**Phase 5**](file:///Users/vchun/Codes/My-projects/02-Ariadnev-Eco/06-Camerashot/plans/2026-09-18-camerashot-implementation/phase-05-tier2-editor-and-ocr.md) | **Tier 2 Slint Editor & Local OCR** | Slint standalone canvas editor, multi-track video timeline (Trim, Zoom punch with smoothstep, Censor blur, Speed ramps), embedded ONNX RapidOCR + Apple Vision, 11 PII regexes with atomic undo. | **In Progress** |
 
 ---
 
