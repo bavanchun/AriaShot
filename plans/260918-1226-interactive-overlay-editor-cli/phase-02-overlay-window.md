@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: "Interactive Overlay Window"
-status: todo
+status: done
 priority: P1
 effort: "1d"
 dependencies: [1]
@@ -77,13 +77,13 @@ main.rs ── capture primary display ── OverlaySurface::new
 
 ## Todo
 
-- [ ] Thêm deps winit/softbuffer
-- [ ] Loupe 2x thật + test
-- [ ] Toolbar layout/hit-test + icon + test
-- [ ] Loupe khi Selecting
-- [ ] OverlayApp (window, events, present)
-- [ ] Copy to clipboard + exit; Esc huỷ
-- [ ] main.rs mới
+- [x] Thêm deps winit/softbuffer
+- [x] Loupe 2x thật + test
+- [x] Toolbar layout/hit-test + icon + test
+- [x] Loupe khi Selecting
+- [x] OverlayApp (window, events, present)
+- [x] Copy to clipboard + exit; Esc huỷ
+- [x] main.rs mới
 - [ ] Manual E2E trên macOS
 
 ## Success Criteria

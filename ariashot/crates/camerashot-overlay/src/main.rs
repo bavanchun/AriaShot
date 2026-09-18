@@ -1,49 +1,75 @@
-use camerashot_core::geometry::Point;
-use camerashot_overlay::OverlaySurface;
+use camerashot_overlay::{OverlayApp, OverlaySurface};
 use camerashot_platform::create_default_backend;
+use std::process::ExitCode;
+use tracing::{error, info};
+use winit::event_loop::EventLoop;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== Camerashot Tier 1 Overlay Engine ===");
+fn main() -> ExitCode {
+    tracing_subscriber::fmt::init();
 
-    let backend = create_default_backend()?;
-    let displays = backend.enumerate_displays()?;
-    println!("Found {} active display(s)", displays.len());
+    info!("AriaShot Overlay starting…");
 
-    for (i, d) in displays.iter().enumerate() {
-        println!(
-            "  [{}] {} (bounds: {:?}, scale: {:.1}, primary: {})",
-            i, d.name, d.bounds, d.scale_factor, d.is_primary
-        );
-    }
-
-    if let Some(primary) = displays.iter().find(|d| d.is_primary).or_else(|| displays.first()) {
-        println!("Capturing display {}...", primary.name);
-        let start = std::time::Instant::now();
-        let frame = backend.capture_display(primary.id)?;
-        let capture_duration = start.elapsed();
-        println!(
-            "Captured {}x{} frame in {:?}",
-            frame.width, frame.height, capture_duration
-        );
-
-        let rgba = frame.to_rgba8();
-        let mut surface = OverlaySurface::new(frame.width as u32, frame.height as u32, &rgba)
-            .ok_or("Failed to create OverlaySurface")?;
-
-        println!("Overlay surface initialized with BoundarySnapIndex successfully.");
-
-        // Simulate interactive selection drag
-        surface.on_mouse_down(Point::new(100.0, 100.0));
-        surface.on_mouse_move(Point::new(600.0, 400.0));
-        surface.on_mouse_up();
-
-        if let Some(sel) = surface.controller.current_selection_rect() {
-            println!("Selected region: {:?}", sel);
-            if let Some(cropped) = surface.export_selection_pixmap() {
-                println!("Exported selection pixmap: {}x{}", cropped.width(), cropped.height());
-            }
+    // 1. Capture the primary display
+    let backend = match create_default_backend() {
+        Ok(b) => b,
+        Err(e) => {
+            error!("Failed to create capture backend: {}", e);
+            return ExitCode::from(2);
         }
+    };
+
+    let displays = match backend.enumerate_displays() {
+        Ok(d) => d,
+        Err(e) => {
+            error!("Failed to enumerate displays: {}", e);
+            return ExitCode::from(2);
+        }
+    };
+
+    let primary = match displays.iter().find(|d| d.is_primary).or(displays.first()) {
+        Some(d) => d,
+        None => {
+            error!("No display found");
+            return ExitCode::from(2);
+        }
+    };
+
+    info!("Capturing display: {} ({}×{})", primary.name, primary.bounds.width(), primary.bounds.height());
+
+    let frame = match backend.capture_display(primary.id) {
+        Ok(f) => f,
+        Err(e) => {
+            error!("Capture failed: {}", e);
+            return ExitCode::from(2);
+        }
+    };
+
+    let rgba = frame.to_rgba8();
+    let surface = match OverlaySurface::new(frame.width as u32, frame.height as u32, &rgba) {
+        Some(s) => s,
+        None => {
+            error!("Failed to create OverlaySurface");
+            return ExitCode::from(2);
+        }
+    };
+
+    info!("Overlay surface: {}×{}", surface.width, surface.height);
+
+    // 2. Open the overlay window and run the event loop
+    let event_loop = match EventLoop::new() {
+        Ok(el) => el,
+        Err(e) => {
+            error!("Failed to create event loop: {}", e);
+            return ExitCode::from(2);
+        }
+    };
+
+    let mut app = OverlayApp::new(surface);
+
+    if let Err(e) = event_loop.run_app(&mut app) {
+        error!("Event loop error: {}", e);
+        return ExitCode::from(2);
     }
 
-    Ok(())
+    ExitCode::from(app.exit_code as u8)
 }

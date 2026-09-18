@@ -118,9 +118,17 @@ impl OverlaySurface {
             if matches!(self.controller.state, OverlayState::Selected { .. }) {
                 FloatingToolbar::render(&mut target.as_mut(), sel, self.active_tool);
             }
-        } else if let OverlayState::Idle { cursor } = self.controller.state {
-            // In Idle, render Loupe
-            Loupe::render(&mut target.as_mut(), self.base_image.as_ref(), cursor);
+        }
+
+        // Loupe during Idle or Selecting
+        match self.controller.state {
+            OverlayState::Idle { cursor } => {
+                Loupe::render(&mut target.as_mut(), self.base_image.as_ref(), cursor);
+            }
+            OverlayState::Selecting { current, .. } => {
+                Loupe::render(&mut target.as_mut(), self.base_image.as_ref(), current);
+            }
+            _ => {}
         }
 
         // 3. Render annotations
