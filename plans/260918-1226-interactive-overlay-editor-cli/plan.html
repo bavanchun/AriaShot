@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AriaShot: Implementation Plan — Interactive Overlay, Slint Editor & CLI Capture</title>
+  <style>
+    :root {
+      --bg-warm: #faf7f2;
+      --bg-panel: #f2ece1;
+      --bg-panel-hover: #e8e0d2;
+      --bg-card: #ffffff;
+      --border-hairline: rgba(30, 25, 20, 0.12);
+      --border-dark: rgba(30, 25, 20, 0.28);
+      --ink: #181512;
+      --ink-muted: #6b6258;
+      --ink-subtle: #8c8275;
+      --accent-crimson: #b8232c;
+      --accent-blue: #1a56db;
+      --accent-green: #15803d;
+      --accent-amber: #b45309;
+      --code-bg: #23211e;
+      --code-fg: #f5f2eb;
+      --font-serif: "Newsreader", "Playfair Display", "Charter", "Georgia", serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", "Menlo", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-warm);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    /* Magazine Header */
+    header.hero {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 2rem;
+      margin-bottom: 3rem;
+    }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-crimson);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .eyebrow::after {
+      content: "";
+      height: 1px;
+      flex-grow: 1;
+      background: var(--border-hairline);
+    }
+    h1.title {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      color: var(--ink);
+    }
+    p.subtitle {
+      font-size: 1.25rem;
+      color: var(--ink-muted);
+      max-width: 820px;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-hairline);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .badge-p1 { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .badge-parallel { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+    .badge-status { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .meta-item { color: var(--ink-muted); }
+    .meta-item strong { color: var(--ink); }
+
+    /* Sections */
+    section {
+      margin-bottom: 4rem;
+    }
+    .section-head {
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 0.5rem;
+    }
+    .section-head h2 {
+      font-family: var(--font-serif);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .section-head .tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+    }
+
+    /* Cards & Grid */
+    .grid-phases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+    .phase-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      transition: all 0.2s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .phase-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.07);
+      border-color: var(--ink);
+    }
+    .phase-badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+    .phase-number {
+      font-weight: 800;
+      color: var(--accent-crimson);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .phase-dep {
+      color: var(--ink-subtle);
+    }
+    .phase-card h3 {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      line-height: 1.3;
+      margin-bottom: 0.6rem;
+      color: var(--ink);
+    }
+    .phase-desc {
+      font-size: 0.92rem;
+      color: var(--ink-muted);
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+    }
+    .phase-meta-list {
+      list-style: none;
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+      border-top: 1px dashed var(--border-hairline);
+      padding-top: 0.75rem;
+    }
+    .phase-meta-list li {
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .phase-meta-list li::before {
+      content: "•";
+      color: var(--accent-crimson);
+      font-weight: bold;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-hairline);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .btn-inspect {
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* Interactive Graph / Diagrams */
+    .diagram-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .diagram-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Comparison Table / Matrix */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 0.9rem;
+    }
+    .matrix-table th, .matrix-table td {
+      padding: 0.9rem 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .matrix-table th {
+      background: var(--bg-panel);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink);
+    }
+    .matrix-table tr:last-child td {
+      border-bottom: none;
+    }
+    .matrix-table tr:hover td {
+      background: #fdfbf7;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(0,0,0,0.05);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 13, 10, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-backdrop.active {
+      display: flex;
+    }
+    .modal-window {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      padding: 2.5rem;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--ink-muted);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--ink); }
+    .modal-content h3 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal-content .modal-meta {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .modal-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-crimson);
+      font-weight: 700;
+      margin: 1.5rem 0 0.5rem;
+    }
+    .modal-body ul {
+      margin-left: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .modal-body li {
+      margin-bottom: 0.4rem;
+    }
+    .code-block {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 0.75rem 0 1.25rem;
+      line-height: 1.45;
+    }
+
+    /* UI Mockup Showcase */
+    .mockup-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 768px) {
+      .mockup-container { grid-template-columns: 1fr; }
+      h1.title { font-size: 2.2rem; }
+    }
+    .mockup-card {
+      background: #1e1e24;
+      color: #f1f1f5;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #32323e;
+      font-family: var(--font-sans);
+    }
+    .mockup-header {
+      background: #2a2a34;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #383848;
+      font-size: 0.8rem;
+      color: #9e9eb0;
+      font-family: var(--font-mono);
+    }
+    .traffic-lights {
+      display: flex;
+      gap: 5px;
+      margin-right: 0.5rem;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .mockup-body {
+      padding: 1.5rem;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 0.75rem;
+    }
+
+    /* CTA Bar */
+    .cta-banner {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 3rem;
+    }
+    .cta-text h3 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .cta-text p {
+      color: var(--ink-muted);
+      font-size: 0.95rem;
+    }
+    .btn-primary {
+      background: var(--ink);
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 5px;
+      font-weight: 600;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover {
+      background: var(--accent-crimson);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="hero">
+    <div class="eyebrow">Ariadnev Ecosystem • Parallel Execution Architecture</div>
+    <h1 class="title">AriaShot: Interactive Overlay, Slint Editor & CLI Capture</h1>
+    <p class="subtitle">
+      Comprehensive architectural implementation plan to deliver production-ready interactive surfaces: Fullscreen Transparent Native Overlay Window, Post-Capture Slint Desktop Editor (Image + Video Mode), and Headless CLI Tooling with Local Vision OCR & Auto-Redaction.
+    </p>
+
+    <div class="meta-bar">
+      <span class="badge badge-status">Status: Pending Review</span>
+      <span class="badge badge-p1">Priority: P1</span>
+      <span class="badge badge-parallel">Mode: Parallel (Isolated Crate Ownership)</span>
+      <span class="meta-item">Estimated Effort: <strong>5 Days</strong></span>
+      <span class="meta-item">Total Phases: <strong>6 Executable Units</strong></span>
+      <span class="meta-item">Target OS: <strong>macOS 13+ & Linux</strong></span>
+    </div>
+  </header>
+
+  <!-- Execution Pipeline Diagram -->
+  <section>
+    <div class="section-head">
+      <h2>1. Parallel Execution Graph</h2>
+      <span class="tag">DAG Dependencies & Isolation</span>
+    </div>
+
+    <div class="diagram-panel">
+      <svg class="diagram-svg" viewBox="0 0 920 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#6b6258" />
+          </marker>
+        </defs>
+
+        <!-- Phase 1: Shared Foundation -->
+        <rect x="20" y="90" width="180" height="70" rx="6" fill="#ffffff" stroke="#b8232c" stroke-width="2" />
+        <text x="35" y="118" font-family="Newsreader, serif" font-size="15" font-weight="bold" fill="#181512">Phase 1: Foundation</text>
+        <text x="35" y="138" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">deps, clipboard, Apple Vision</text>
+        <text x="35" y="150" font-family="-apple-system, sans-serif" font-size="11" fill="#b8232c">Single-thread unlock gate</text>
+
+        <!-- Phase 2: Overlay Window -->
+        <rect x="280" y="15" width="200" height="65" rx="6" fill="#ffffff" stroke="#1a56db" stroke-width="1.5" />
+        <text x="295" y="42" font-family="Newsreader, serif" font-size="14" font-weight="bold" fill="#181512">Phase 2: Overlay Window</text>
+        <text x="295" y="60" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">winit + softbuffer + Loupe 2x</text>
+
+        <!-- Phase 3: Editor Image Mode -->
+        <rect x="280" y="100" width="200" height="65" rx="6" fill="#ffffff" stroke="#15803d" stroke-width="1.5" />
+        <text x="295" y="127" font-family="Newsreader, serif" font-size="14" font-weight="bold" fill="#181512">Phase 3: Editor Image Mode</text>
+        <text x="295" y="145" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">Slint window, canvas, auto-redact</text>
+
+        <!-- Phase 5: CLI Tool -->
+        <rect x="280" y="185" width="200" height="65" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.5" />
+        <text x="295" y="212" font-family="Newsreader, serif" font-size="14" font-weight="bold" fill="#181512">Phase 5: CLI Tool (ariashot)</text>
+        <text x="295" y="230" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">clap, --crop, --ocr, --redact</text>
+
+        <!-- Phase 4: Editor Video Mode -->
+        <rect x="540" y="100" width="200" height="65" rx="6" fill="#ffffff" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4 2" />
+        <text x="555" y="127" font-family="Newsreader, serif" font-size="14" font-weight="bold" fill="#181512">Phase 4: Editor Video Mode</text>
+        <text x="555" y="145" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">ScreenRecorder, timeline, GIF export</text>
+
+        <!-- Phase 6: Integration & Docs -->
+        <rect x="770" y="100" width="130" height="65" rx="6" fill="#ffffff" stroke="#181512" stroke-width="2" />
+        <text x="782" y="127" font-family="Newsreader, serif" font-size="14" font-weight="bold" fill="#181512">Phase 6</text>
+        <text x="782" y="145" font-family="-apple-system, sans-serif" font-size="11" fill="#6b6258">CI, README, E2E</text>
+
+        <!-- Connecting Lines -->
+        <!-- P1 to P2 -->
+        <path d="M 200 115 L 240 115 L 240 47 L 275 47" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+        <!-- P1 to P3 -->
+        <path d="M 200 132 L 275 132" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+        <!-- P1 to P5 -->
+        <path d="M 200 148 L 240 148 L 240 217 L 275 217" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- P3 to P4 -->
+        <path d="M 480 132 L 535 132" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- P2 to P6 -->
+        <path d="M 480 47 L 745 47 L 745 120 L 765 120" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+        <!-- P4 to P6 -->
+        <path d="M 740 132 L 765 132" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+        <!-- P5 to P6 -->
+        <path d="M 480 217 L 745 217 L 745 145 L 765 145" fill="none" stroke="#6b6258" stroke-width="1.5" marker-end="url(#arrow)" />
+      </svg>
+    </div>
+  </section>
+
+  <!-- Detailed Phase Cards Grid -->
+  <section>
+    <div class="section-head">
+      <h2>2. Implementation Phases Outlines</h2>
+      <span class="tag">Click any card for technical specifications</span>
+    </div>
+
+    <div class="grid-phases">
+
+      <!-- Phase 1 -->
+      <div class="phase-card" onclick="openModal('phase1')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 1</span>
+            <span class="phase-dep">Prerequisite for all</span>
+          </div>
+          <h3>Shared Foundation & Native Vision OCR</h3>
+          <p class="phase-desc">Setup workspace dependencies (winit, softbuffer, arboard, slint, objc2-vision), implement native macOS Vision text recognition, clipboard image/text API, and PII redact pipeline.</p>
+          <ul class="phase-meta-list">
+            <li>Integrates <code>objc2-vision</code> for <code>VNRecognizeTextRequest</code> on macOS.</li>
+            <li>Creates unified <code>platform::clipboard</code> for RGBA images & text.</li>
+            <li>Implements <code>ocr::pipeline</code> batching redactions with atomic UUIDs.</li>
+            <li>Establishes initial <code>camerashot-cli</code> crate skeleton.</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>1 Day</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="phase-card" onclick="openModal('phase2')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 2</span>
+            <span class="phase-dep">Depends on Phase 1</span>
+          </div>
+          <h3>Interactive Fullscreen Overlay Window</h3>
+          <p class="phase-desc">Transform headless overlay test into an interactive, zero-flicker native fullscreen surface with mouse rubber-band drag, 2x magnification Loupe, and clipboard export.</p>
+          <ul class="phase-meta-list">
+            <li><code>winit 0.30</code> + <code>softbuffer 0.4</code> borderless topmost window.</li>
+            <li>Retina 2x coordinate mapping without subpixel scaling artifacts.</li>
+            <li>Real 2x pixel magnification Loupe with crosshair & boundary flipping.</li>
+            <li>Keyboard shortcuts: <code>Enter</code> / <code>Cmd+C</code> (Copy), <code>Esc</code> (Cancel).</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>1 Day</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="phase-card" onclick="openModal('phase3')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 3</span>
+            <span class="phase-dep">Depends on Phase 1</span>
+          </div>
+          <h3>Slint Desktop Editor: Image Mode</h3>
+          <p class="phase-desc">Connect <code>main_editor.slint</code> to Rust backend. Implement interactive canvas with infinite pan & zoom, 1-click Auto-Redact, OCR extraction, Copy, Save, and Undo/Redo.</p>
+          <ul class="phase-meta-list">
+            <li>Wires <code>slint</code> build script and component modules.</li>
+            <li>Infinite Pan & Zoom canvas viewport with centering clipview.</li>
+            <li>1-Click Auto-Redact triggers Apple Vision + 11 PII Regexes.</li>
+            <li>Atomic Undo/Redo stack integration for redaction blocks.</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>1.5 Days</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+      <!-- Phase 4 -->
+      <div class="phase-card" onclick="openModal('phase4')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 4</span>
+            <span class="phase-dep">Depends on Phase 3</span>
+          </div>
+          <h3>Slint Editor: Video Mode & Recording</h3>
+          <p class="phase-desc">Expand desktop editor with native screen recording loop. Implement interactive multi-track timeline (playback, seek, cut, zoom punch, censor blur) and GIF export.</p>
+          <ul class="phase-meta-list">
+            <li>Bounded screen recording loop (10 FPS, 960px width, max 30s).</li>
+            <li>Memory-safe buffer capped at ~650MB without disk stalls.</li>
+            <li>Interactive timeline: Play/Pause scrubber, cuts, cubic smoothstep zoom.</li>
+            <li>Direct multi-threaded animated GIF export via native <code>gifski</code>.</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>1 Day</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+      <!-- Phase 5 -->
+      <div class="phase-card" onclick="openModal('phase5')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 5</span>
+            <span class="phase-dep">Depends on Phase 1</span>
+          </div>
+          <h3>CLI Capture Utility (ariashot)</h3>
+          <p class="phase-desc">Implement fast command-line capture binary <code>ariashot</code> using <code>clap 4</code>. Support full display, crop bounds, clipboard copy, text OCR, and fail-closed Auto-Redact.</p>
+          <ul class="phase-meta-list">
+            <li>Flags: <code>--full</code>, <code>--crop &lt;X,Y,W,H&gt;</code>, <code>-o &lt;path&gt;</code>, <code>--clipboard</code>.</li>
+            <li><code>--ocr</code>: prints extracted text to stdout or copies to clipboard.</li>
+            <li><code>--redact</code>: automatically masks sensitive PII before saving/copying.</li>
+            <li>Fail-closed security: halts export if OCR pipeline errors out.</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>0.75 Day</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+      <!-- Phase 6 -->
+      <div class="phase-card" onclick="openModal('phase6')">
+        <div>
+          <div class="phase-badge-row">
+            <span class="phase-number">Phase 6</span>
+            <span class="phase-dep">Depends on 2, 4, 5</span>
+          </div>
+          <h3>Integration, Verification & Documentation</h3>
+          <p class="phase-desc">End-to-end testing matrix across all 3 surfaces on macOS. Clippy validation with zero warnings, release packaging verification, and updated README user manual.</p>
+          <ul class="phase-meta-list">
+            <li>Full workspace compilation: <code>cargo test --workspace</code>.</li>
+            <li>Zero clippy warnings: <code>cargo clippy --workspace -- -D warnings</code>.</li>
+            <li>Release build optimization and binary size auditing.</li>
+            <li>Complete documentation updates for macOS installation & shortcuts.</li>
+          </ul>
+        </div>
+        <div class="card-footer">
+          <span>Effort: <strong>0.5 Day</strong></span>
+          <span class="btn-inspect">Inspect Spec →</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- File Ownership Matrix -->
+  <section>
+    <div class="section-head">
+      <h2>3. Parallel File Boundaries & Invariants</h2>
+      <span class="tag">Zero Merge Conflict Guarantee</span>
+    </div>
+
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th style="width: 100px;">Phase</th>
+          <th style="width: 260px;">Target Workspace Component</th>
+          <th>Strictly Owned Files & Directory Boundaries</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Phase 1</strong></td>
+          <td><code>camerashot-platform</code>, <code>ocr</code></td>
+          <td><code>ariashot/Cargo.toml</code>, <code>.gitignore</code>, <code>crates/camerashot-platform/**</code>, <code>crates/camerashot-ocr/**</code>, <code>crates/camerashot-cli/Cargo.toml</code> (skeleton).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2</strong></td>
+          <td><code>camerashot-overlay</code></td>
+          <td><code>crates/camerashot-overlay/**</code> (main.rs, window_app.rs, surface.rs, hud/**).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 3</strong></td>
+          <td><code>camerashot-editor</code> (Image Mode)</td>
+          <td><code>crates/camerashot-editor/{Cargo.toml, build.rs, src/main.rs, src/lib.rs, src/app/image_session.rs, ui/main_editor.slint}</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 4</strong></td>
+          <td><code>camerashot-editor</code> (Video Mode)</td>
+          <td><code>crates/camerashot-editor/{src/app/recording.rs, src/app/video_session.rs, ui/video_timeline.slint}</code> + Phase 4 extensions.</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 5</strong></td>
+          <td><code>camerashot-cli</code></td>
+          <td><code>crates/camerashot-cli/**</code> (main.rs, cli parser, runner).</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 6</strong></td>
+          <td>Documentation & Workspace CI</td>
+          <td><code>README.md</code>, <code>docs/**</code>, test matrices.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--ink-muted); font-family: var(--font-mono);">
+      ⚠️ <strong>Invariant Guard:</strong> No phase may modify <code>camerashot-core</code> or <code>camerashot-media</code> (they are frozen stable engines).
+    </p>
+  </section>
+
+  <!-- UI / Interaction Mockups -->
+  <section>
+    <div class="section-head">
+      <h2>4. User Experience & Visual Surfaces</h2>
+      <span class="tag">Designed for Speed & Local Privacy</span>
+    </div>
+
+    <div class="mockup-container">
+      <!-- Overlay Mockup -->
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <div class="traffic-lights"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+          <span>AriaShot • Instant Overlay (Tier 1)</span>
+        </div>
+        <div class="mockup-body" style="background: radial-gradient(circle at center, #23232c 0%, #121216 100%);">
+          <div style="border: 2px dashed #0084ff; padding: 1.5rem 2.5rem; background: rgba(0, 132, 255, 0.08); border-radius: 4px; position: relative;">
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: #0084ff; position: absolute; top: -20px; left: 0;">Selection: 840 × 520 px</div>
+            <p style="font-size: 0.95rem; font-weight: 600;">Magnetic Boundary Snapping Active</p>
+            <p style="font-size: 0.8rem; color: #8c8c9e;">Loupe 2x Magnifier following cursor</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <span style="background: #2b2b38; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-family: var(--font-mono);">⏎ Enter / ⌘C: Copy</span>
+            <span style="background: #2b2b38; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-family: var(--font-mono);">Esc: Cancel</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor Mockup -->
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <div class="traffic-lights"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div></div>
+          <span>AriaShot • Standalone Desktop Editor (Tier 2)</span>
+        </div>
+        <div class="mockup-body" style="background: #141418; padding: 1rem;">
+          <div style="width: 100%; display: flex; justify-content: space-between; border-bottom: 1px solid #282834; padding-bottom: 0.5rem; font-size: 0.8rem;">
+            <span style="font-weight: 700; color: #ffffff;">AriaShot Editor</span>
+            <div style="display: flex; gap: 0.4rem;">
+              <span style="background: #ff5f56; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">Auto-Redact</span>
+              <span style="background: #4a4a5a; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem;">OCR</span>
+              <span style="background: #0084ff; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 600;">Copy</span>
+            </div>
+          </div>
+          <div style="margin: 1.5rem 0; color: #6e6e82; font-size: 0.9rem;">
+            [ Infinite Pan & Zoom Canvas Viewport ]<br>
+            <span style="font-size: 0.8rem; color: #00ba7c;">Multi-track Video Timeline Enabled</span>
+          </div>
+          <div style="width: 100%; background: #1c1c24; border-radius: 4px; padding: 0.5rem; font-family: var(--font-mono); font-size: 0.72rem; color: #888899; display: flex; justify-content: space-between;">
+            <span>▶ 00:04.2 / 00:15.0</span>
+            <span>Zoom Punch [Hermite Cubic]</span>
+            <span>Censor Blur [PII Safe]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Success Verification Criteria -->
+  <section>
+    <div class="section-head">
+      <h2>5. Verification Gates & Success Criteria</h2>
+      <span class="tag">Mechanical Quality Assurance</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border-hairline); border-radius: 6px; padding: 1.5rem;">
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem;">
+        <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+          <input type="checkbox" style="margin-top: 0.3rem;" checked disabled>
+          <div>
+            <strong>Automated Compilation & Test Suite:</strong> <code>cargo build --workspace</code> and <code>cargo test --workspace</code> pass cleanly. <code>cargo clippy --workspace -- -D warnings</code> generates 0 errors.
+          </div>
+        </li>
+        <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+          <input type="checkbox" style="margin-top: 0.3rem;" checked disabled>
+          <div>
+            <strong>Tier 1 Overlay Window Verification:</strong> <code>cargo run -p camerashot-overlay --release</code> opens instantly on active monitor, allows mouse dragging with magnetic boundary snapping, displays 2x Loupe, and copies selection to clipboard on <code>Enter</code> / <code>Cmd+C</code>.
+          </div>
+        </li>
+        <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+          <input type="checkbox" style="margin-top: 0.3rem;" checked disabled>
+          <div>
+            <strong>Tier 2 Slint Editor Verification:</strong> <code>cargo run -p camerashot-editor --release</code> renders image with pan/zoom; 1-click Auto-Redact detects credit cards, emails, SSNs and creates atomic undo blocks. Video recording and timeline seek/cut/zoom punch export animated GIF without OOM.
+          </div>
+        </li>
+        <li style="display: flex; gap: 0.75rem; align-items: flex-start;">
+          <input type="checkbox" style="margin-top: 0.3rem;" checked disabled>
+          <div>
+            <strong>CLI Headless Operation:</strong> <code>ariashot --full -o desktop.png</code>, <code>ariashot --crop 0,0,800,600 --clipboard</code>, and <code>ariashot --full --ocr --redact</code> successfully mask sensitive text and output clean images.
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA Handover Bar -->
+  <div class="cta-banner">
+    <div class="cta-text">
+      <h3>Ready to Execute Phase Implementation?</h3>
+      <p>The plan is fully validated with strict file ownership isolation, ready for parallel execution.</p>
+    </div>
+    <div>
+      <span class="btn-primary" style="cursor: default;">Run: /ak:cook --parallel</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Interactive Modal Dialog -->
+<div id="phaseModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+  <div class="modal-window">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent" class="modal-content">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script>
+  const phaseData = {
+    phase1: {
+      number: "Phase 1",
+      title: "Shared Foundation & Native Vision OCR",
+      effort: "1 Day",
+      deps: "None (Prerequisite for Phase 2, 3, 5)",
+      overview: "Establishes all shared dependencies and pipelines so Phases 2, 3, and 5 can execute concurrently without touching each other's files. Single gate that modifies root Cargo.toml.",
+      bullets: [
+        "Adds workspace dependencies: winit 0.30, softbuffer 0.4, arboard 3, slint 1, clap 4, objc2-vision.",
+        "Implements camerashot-platform::clipboard for straight RGBA images and text copying on macOS & Linux.",
+        "Implements real Apple Vision OCR via objc2-vision on macOS (accurate recognition, language correction, normalized-to-pixel coordinates conversion).",
+        "Configures Linux OCR to return a clear, explicit 'Not supported yet' error instead of returning empty results.",
+        "Creates camerashot-ocr::pipeline providing detect_redactions(), redactions_from_blocks(), and mask_pii_in_text().",
+        "Bootstraps initial camerashot-cli skeleton crate to establish compilation boundaries."
+      ],
+      files: [
+        "ariashot/Cargo.toml (workspace members + deps)",
+        "ariashot/crates/camerashot-platform/src/clipboard.rs",
+        "ariashot/crates/camerashot-ocr/src/vision_macos.rs",
+        "ariashot/crates/camerashot-ocr/src/pipeline.rs",
+        "ariashot/crates/camerashot-cli/Cargo.toml (skeleton)"
+      ],
+      verification: "cargo test -p camerashot-platform && cargo test -p camerashot-ocr pass with 100% success on sample PII test fixtures."
+    },
+    phase2: {
+      number: "Phase 2",
+      title: "Interactive Overlay Window",
+      effort: "1 Day",
+      deps: "Phase 1",
+      overview: "Transforms the headless overlay harness into a native, high-performance fullscreen overlay. Freezes desktop on trigger, captures mouse events, renders Loupe 2x with nearest-neighbor magnification, and exports to clipboard on Enter or Cmd+C.",
+      bullets: [
+        "winit 0.30 ApplicationHandler implementation with window_app.rs.",
+        "macOS: WindowExtMacOS::set_simple_fullscreen(true) to cover active display without creating a new Spaces animation.",
+        "softbuffer 0.4 presentation converting RGBA8 pixels into native u32 0x00RRGGBB buffer on Demand.",
+        "Full Loupe 2x magnification with circular clip (R=48), subtle pixel grid, crosshairs, and edge flipping.",
+        "Interactive toolbar hit-testing for Copy and Close actions with DRY layout geometry.",
+        "Esc exits cleanly; Enter or Cmd+C / Ctrl+C copies selection directly to system clipboard."
+      ],
+      files: [
+        "ariashot/crates/camerashot-overlay/Cargo.toml",
+        "ariashot/crates/camerashot-overlay/src/main.rs",
+        "ariashot/crates/camerashot-overlay/src/window_app.rs",
+        "ariashot/crates/camerashot-overlay/src/surface.rs",
+        "ariashot/crates/camerashot-overlay/src/hud/loupe.rs"
+      ],
+      verification: "cargo run -p camerashot-overlay --release launches fullscreen overlay on macOS display, selects regions with magnetic edge snapping, and writes to clipboard."
+    },
+    phase3: {
+      number: "Phase 3",
+      title: "Slint Desktop Editor: Image Mode",
+      effort: "1.5 Days",
+      deps: "Phase 1",
+      overview: "Wires slint GUI framework into camerashot-editor. Delivers an infinite pan and zoom canvas, toolbar action dispatching, 1-click Auto-Redact with atomic undo, and image export.",
+      bullets: [
+        "Configures slint-build in build.rs and connects main_editor.slint to Rust app loop.",
+        "Delivers centering clipview for infinite canvas panning and zooming with mouse wheel and drag.",
+        "Hooks up Auto-Redact button: calls ocr::pipeline::detect_redactions and pushes UndoAction::Batch for instant atomic undo.",
+        "Hooks up OCR button: extracts text via Apple Vision and places plain text on system clipboard.",
+        "Hooks up Copy and Save buttons: exports composited tiny-skia pixmap directly to clipboard or desktop PNG.",
+        "Comprehensive keyboard shortcut bindings: Cmd+Z (Undo), Cmd+Shift+Z (Redo), Cmd+C (Copy), Cmd+S (Save)."
+      ],
+      files: [
+        "ariashot/crates/camerashot-editor/Cargo.toml",
+        "ariashot/crates/camerashot-editor/build.rs",
+        "ariashot/crates/camerashot-editor/src/main.rs",
+        "ariashot/crates/camerashot-editor/src/app/image_session.rs",
+        "ariashot/crates/camerashot-editor/ui/main_editor.slint"
+      ],
+      verification: "cargo run -p camerashot-editor opens Slint window, allows zooming/panning, and correctly applies Auto-Redact on PII images with atomic 1-click undo."
+    },
+    phase4: {
+      number: "Phase 4",
+      title: "Slint Editor: Video Mode & Recording",
+      effort: "1 Day",
+      deps: "Phase 3",
+      overview: "Expands the desktop editor into a lightweight screen recording suite. Implements Record/Stop button, bounded in-memory capture, interactive timeline scrubber, non-destructive zoom/censor segments, and GIF export.",
+      bullets: [
+        "Screen recording capture loop: capped at 10 FPS, 960px max dimension, and 30 seconds to strictly bound RAM usage below ~650MB.",
+        "Video mode toggle: automatically switches editor to video mode upon recording stop.",
+        "Timeline scrubbing: interactive playback scrubber linked to VideoTimeline model.",
+        "Non-destructive cuts, censor blur boxes, and zoom punches with Hermite cubic smoothstep curves S(x) = x^2(3-2x).",
+        "Direct multi-threaded animated GIF export using native gifski crate without temporary disk bottleneck."
+      ],
+      files: [
+        "ariashot/crates/camerashot-editor/src/app/recording.rs",
+        "ariashot/crates/camerashot-editor/src/app/video_session.rs",
+        "ariashot/crates/camerashot-editor/ui/video_timeline.slint",
+        "ariashot/crates/camerashot-editor/tests/video_session_tests.rs"
+      ],
+      verification: "Record 10 seconds of desktop activity, apply zoom punch and censor block on timeline, and export smoothly playing GIF."
+    },
+    phase5: {
+      number: "Phase 5",
+      title: "CLI Capture Utility (ariashot)",
+      effort: "0.75 Day",
+      deps: "Phase 1",
+      overview: "Creates dedicated crate camerashot-cli producing binary ariashot. Offers scriptable, headless capture commands for power users and terminal automations.",
+      bullets: [
+        "clap 4 derive parser supporting flags: --full, --crop, --clipboard, -o, --ocr, --redact.",
+        "--full captures active monitor; --crop X,Y,W,H extracts specific rectangle.",
+        "--clipboard directly passes resulting RGBA buffer to system clipboard without creating a file.",
+        "--ocr prints extracted text to stdout; when paired with --redact, masks PII before printing.",
+        "Fail-closed security design: if OCR fails during a --redact command, the operation halts immediately without leaking unredacted images."
+      ],
+      files: [
+        "ariashot/crates/camerashot-cli/Cargo.toml",
+        "ariashot/crates/camerashot-cli/src/main.rs",
+        "ariashot/crates/camerashot-cli/src/args.rs"
+      ],
+      verification: "ariashot --full -o test.png and ariashot --crop 100,100,500,400 --clipboard execute in under 120ms."
+    },
+    phase6: {
+      number: "Phase 6",
+      title: "Integration, Verification & Documentation",
+      effort: "0.5 Day",
+      deps: "Phases 2, 4, 5",
+      overview: "Consolidates all 3 deliverables, runs full workspace test matrix, fixes clippy lints, verifies release builds, and updates documentation.",
+      bullets: [
+        "Runs cargo fmt --all --check across the workspace.",
+        "Enforces cargo clippy --workspace --all-targets -- -D warnings with zero errors.",
+        "Verifies release optimization: cargo build --release --workspace.",
+        "Updates root README.md with comprehensive guides for Overlay shortcuts, Slint Editor capabilities, and CLI usage examples."
+      ],
+      files: [
+        "README.md (root user manual)",
+        "ariashot/Cargo.toml",
+        "docs/user-guide.md"
+      ],
+      verification: "All unit and integration tests pass cleanly; release binaries camerashot-overlay, camerashot-editor, and ariashot run without issues."
+    }
+  };
+
+  function openModal(phaseId) {
+    const data = phaseData[phaseId];
+    if (!data) return;
+
+    const modalContent = document.getElementById("modalContent");
+    modalContent.innerHTML = `
+      <div class="phase-number" style="font-family: var(--font-mono);">${data.number} • Target Effort: ${data.effort}</div>
+      <h3>${data.title}</h3>
+      <div class="modal-meta">
+        <strong>Dependencies:</strong> ${data.deps}
+      </div>
+
+      <div class="modal-section-title">Overview & Objectives</div>
+      <p style="margin-bottom: 1rem; color: var(--ink-muted);">${data.overview}</p>
+
+      <div class="modal-section-title">Key Technical Deliverables</div>
+      <ul>
+        ${data.bullets.map(b => `<li>${b}</li>`).join("")}
+      </ul>
+
+      <div class="modal-section-title">Exclusively Owned Files</div>
+      <div class="code-block">${data.files.join("\n")}</div>
+
+      <div class="modal-section-title">Mechanical Verification Gate</div>
+      <p style="background: rgba(21, 128, 61, 0.08); border-left: 3px solid var(--accent-green); padding: 0.6rem 0.8rem; font-size: 0.88rem; color: #166534;">
+        ${data.verification}
+      </p>
+    `;
+
+    document.getElementById("phaseModal").classList.add("active");
+  }
+
+  function closeModal() {
+    document.getElementById("phaseModal").classList.remove("active");
+  }
+
+  function closeModalOnBackdrop(e) {
+    if (e.target.id === "phaseModal") {
+      closeModal();
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+</script>
+
+</body>
+</html>

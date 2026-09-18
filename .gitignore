@@ -5,3 +5,5 @@ Cargo.lock
 .DS_Store
 Thumbs.db
 ref-souce-code-macshot/
+*.png
+
