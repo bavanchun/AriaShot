@@ -1,0 +1,16 @@
+[package]
+name = "camerashot-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Core domain models, algorithms, and geometry for Camerashot."
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+image = { workspace = true }
+
+[dev-dependencies]
