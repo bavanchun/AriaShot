@@ -1,3 +1,4 @@
+pub mod input;
 pub mod traits;
 
 #[cfg(target_os = "macos")]
@@ -6,6 +7,7 @@ pub mod macos;
 #[cfg(target_os = "linux")]
 pub mod linux;
 
+pub use input::SyntheticScroll;
 pub use traits::{CaptureBackend, FrameBuffer, PixelFormat, PlatformDisplay, PlatformError};
 
 #[cfg(target_os = "macos")]

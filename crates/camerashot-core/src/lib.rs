@@ -3,6 +3,7 @@ pub mod beautify;
 pub mod chaikin;
 pub mod geometry;
 pub mod renderer;
+pub mod scroll;
 pub mod snap_index;
 pub mod undo;
 
@@ -14,5 +15,7 @@ pub use chaikin::{
 };
 pub use geometry::{Point, Rect, Size};
 pub use renderer::AnnotationRenderer;
+pub use scroll::{SadFilter, ScrollStitcher, SettlementDetector, VerticalShiftEstimator};
 pub use snap_index::{BoundarySnapIndex, Hit};
 pub use undo::{UndoAction, UndoStack};
+

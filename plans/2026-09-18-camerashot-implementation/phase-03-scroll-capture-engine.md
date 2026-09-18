@@ -2,7 +2,7 @@
 phase: 3
 title: "Deterministic Scroll Capture Engine"
 description: "Implement step-and-stitch scroll capture with xxHash64 settlement, 2D FFT phase correlation displacement, SAD scrollbar/header exclusion, and -1px seam bias."
-status: "pending"
+status: "completed"
 owner: "engine-scroll"
 ---
 
