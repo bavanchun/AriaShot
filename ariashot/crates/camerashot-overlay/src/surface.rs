@@ -6,9 +6,7 @@ use camerashot_core::geometry::{Point, Rect};
 use camerashot_core::renderer::AnnotationRenderer;
 use camerashot_core::snap_index::BoundarySnapIndex;
 use camerashot_core::undo::UndoStack;
-use tiny_skia::{
-    FillRule, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke, StrokeDash, Transform,
-};
+use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, PixmapPaint, Stroke, StrokeDash, Transform};
 
 pub struct OverlaySurface {
     pub width: u32,
@@ -28,7 +26,8 @@ impl OverlaySurface {
         base_image.data_mut().copy_from_slice(rgba_pixels);
 
         let draw_rect = Rect::new(0.0, 0.0, width as f64, height as f64);
-        let snap_index = BoundarySnapIndex::build(width as usize, height as usize, rgba_pixels, draw_rect);
+        let snap_index =
+            BoundarySnapIndex::build(width as usize, height as usize, rgba_pixels, draw_rect);
 
         Some(Self {
             width,
@@ -72,7 +71,9 @@ impl OverlaySurface {
         // 2. Dim outside selection if selecting or selected
         if let Some(sel) = selection_opt {
             let mut dim_pb = PathBuilder::new();
-            if let Some(r) = tiny_skia::Rect::from_xywh(0.0, 0.0, self.width as f32, self.height as f32) {
+            if let Some(r) =
+                tiny_skia::Rect::from_xywh(0.0, 0.0, self.width as f32, self.height as f32)
+            {
                 dim_pb.push_rect(r);
             }
             if let Some(r) = tiny_skia::Rect::from_xywh(
@@ -86,7 +87,13 @@ impl OverlaySurface {
             if let Some(path) = dim_pb.finish() {
                 let mut dim_paint = Paint::default();
                 dim_paint.set_color_rgba8(0, 0, 0, 110);
-                target.fill_path(&path, &dim_paint, FillRule::EvenOdd, Transform::identity(), None);
+                target.fill_path(
+                    &path,
+                    &dim_paint,
+                    FillRule::EvenOdd,
+                    Transform::identity(),
+                    None,
+                );
             }
 
             // Selection outline border
@@ -103,12 +110,18 @@ impl OverlaySurface {
                 let mut border_paint = Paint::default();
                 border_paint.set_color_rgba8(0, 140, 255, 255);
                 border_paint.anti_alias = true;
-                let mut stroke = Stroke::default();
-                stroke.width = 1.5;
-                if let Some(dash) = StrokeDash::new(vec![6.0, 4.0], 0.0) {
-                    stroke.dash = Some(dash);
-                }
-                target.stroke_path(&border_path, &border_paint, &stroke, Transform::identity(), None);
+                let stroke = Stroke {
+                    width: 1.5,
+                    dash: StrokeDash::new(vec![6.0, 4.0], 0.0),
+                    ..Stroke::default()
+                };
+                target.stroke_path(
+                    &border_path,
+                    &border_paint,
+                    &stroke,
+                    Transform::identity(),
+                    None,
+                );
             }
 
             // Resolution Box HUD

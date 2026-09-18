@@ -14,11 +14,17 @@ fn test_overlay_surface_selection_and_rendering() {
         .expect("Failed to initialize OverlaySurface");
 
     // 1. Initial state is Idle
-    assert!(matches!(surface.controller.state, OverlayState::Idle { .. }));
+    assert!(matches!(
+        surface.controller.state,
+        OverlayState::Idle { .. }
+    ));
 
     // 2. Mouse down at (50, 50) initiates Selecting
     surface.on_mouse_down(Point::new(50.0, 50.0));
-    assert!(matches!(surface.controller.state, OverlayState::Selecting { .. }));
+    assert!(matches!(
+        surface.controller.state,
+        OverlayState::Selecting { .. }
+    ));
 
     // 3. Mouse drag to (350, 250)
     surface.on_mouse_move(Point::new(350.0, 250.0));
@@ -27,7 +33,10 @@ fn test_overlay_surface_selection_and_rendering() {
 
     // 4. Mouse up commits Selected state
     surface.on_mouse_up();
-    assert!(matches!(surface.controller.state, OverlayState::Selected { .. }));
+    assert!(matches!(
+        surface.controller.state,
+        OverlayState::Selected { .. }
+    ));
 
     // 5. Add vector annotations to canvas
     let mut arrow = Annotation::new(
@@ -57,7 +66,9 @@ fn test_overlay_surface_selection_and_rendering() {
     assert_eq!(target.height(), height as u32);
 
     // 7. Export selection pixmap
-    let cropped = surface.export_selection_pixmap().expect("Cropped pixmap should be non-empty");
+    let cropped = surface
+        .export_selection_pixmap()
+        .expect("Cropped pixmap should be non-empty");
     assert_eq!(cropped.width(), 300);
     assert_eq!(cropped.height(), 200);
 
@@ -70,7 +81,9 @@ fn test_overlay_surface_selection_and_rendering() {
         shadow_radius: 16.0,
         bg_radius: 10.0,
     });
-    let beautified = surface.export_selection_pixmap().expect("Beautified pixmap should be created");
+    let beautified = surface
+        .export_selection_pixmap()
+        .expect("Beautified pixmap should be created");
     // Expected width: 300 + 32 * 2 = 364
     // Expected height: 200 + 32 * 2 + 36 (title bar) = 300
     assert_eq!(beautified.width(), 364);
@@ -157,8 +170,12 @@ fn test_sample_magnified_at_origin_no_panic() {
 
     // Top-left quadrant should be transparent (out of bounds)
     // sx_off=-2, sy_off=-2 → src=(-2,-2) → transparent
-    let idx = (0 * 8 + 0) * 4;
-    assert_eq!(result.data()[idx + 3], 0, "out-of-bounds pixel should be transparent");
+    let idx = 0;
+    assert_eq!(
+        result.data()[idx + 3],
+        0,
+        "out-of-bounds pixel should be transparent"
+    );
 }
 
 #[test]
@@ -225,17 +242,18 @@ fn test_loupe_shown_during_selecting() {
     let height = 200u32;
     let pixels = vec![150u8; (width * height * 4) as usize];
 
-    let mut surface = OverlaySurface::new(width, height, &pixels)
-        .expect("surface");
+    let mut surface = OverlaySurface::new(width, height, &pixels).expect("surface");
 
     // Transition to Selecting state
     surface.on_mouse_down(Point::new(50.0, 50.0));
     surface.on_mouse_move(Point::new(100.0, 100.0));
 
-    assert!(matches!(surface.controller.state, OverlayState::Selecting { .. }));
+    assert!(matches!(
+        surface.controller.state,
+        OverlayState::Selecting { .. }
+    ));
 
     // Render should succeed (Loupe visible during Selecting)
     let mut target = Pixmap::new(width, height).unwrap();
     surface.render_frame(&mut target);
 }
-

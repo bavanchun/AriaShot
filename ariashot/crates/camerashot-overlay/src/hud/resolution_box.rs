@@ -43,7 +43,13 @@ impl ResolutionBox {
             let mut paint = Paint::default();
             paint.set_color_rgba8(24, 24, 28, 220);
             paint.anti_alias = true;
-            pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     }
 }

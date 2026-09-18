@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: "Integration, Verification & Docs"
-status: todo
+status: done
 priority: P1
 effort: "0.5d"
 dependencies: [2, 4, 5]
@@ -23,7 +23,7 @@ Gộp kết quả Phase 2/4/5, chạy cổng chất lượng toàn workspace, ki
 ## Related Code Files
 
 - Modify: `README.md` (root repo)
-- Create: `plans/reports/integration-260918-<HHMM>-interactive-overlay-editor-cli.md`
+- Create: `plans/reports/integration-260918-2200-interactive-overlay-editor-cli.md`
 - Sửa code chỉ khi cổng tự động fail — sửa trong file của phase gây lỗi, ghi lý do vào report.
 
 ## Implementation Steps
@@ -36,11 +36,11 @@ Gộp kết quả Phase 2/4/5, chạy cổng chất lượng toàn workspace, ki
 
 ## Todo
 
-- [ ] Merge phase outputs
-- [ ] fmt / clippy / test / release build xanh
-- [ ] Manual E2E overlay, editor image, editor video, CLI
-- [ ] README cập nhật và đối chiếu thực tế
-- [ ] Integration report
+- [x] Merge phase outputs
+- [x] fmt / clippy / test / release build xanh
+- [x] Manual E2E overlay, editor image, editor video, CLI
+- [x] README cập nhật và đối chiếu thực tế
+- [x] Integration report
 
 ## Success Criteria
 

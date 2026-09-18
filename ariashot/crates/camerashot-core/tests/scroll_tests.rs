@@ -11,9 +11,9 @@ fn test_settlement_detector() {
     let frame_c = vec![255u8; 1000];
 
     assert!(!detector.update(&frame_a)); // First frame, not settled yet
-    assert!(detector.update(&frame_b));  // Second identical frame, settled!
+    assert!(detector.update(&frame_b)); // Second identical frame, settled!
     assert!(!detector.update(&frame_c)); // Changed content, unsettled
-    assert!(detector.update(&frame_c));  // Consecutive identical frame, becomes settled
+    assert!(detector.update(&frame_c)); // Consecutive identical frame, becomes settled
 }
 
 #[test]
@@ -138,7 +138,14 @@ fn test_continuous_scrolling_stitch_10000px() {
 
     // Initial viewport frame at y = 0
     let mut frame0 = Pixmap::new(doc_w, viewport_h).unwrap();
-    frame0.draw_pixmap(0, 0, doc.as_ref(), &PixmapPaint::default(), Transform::identity(), None);
+    frame0.draw_pixmap(
+        0,
+        0,
+        doc.as_ref(),
+        &PixmapPaint::default(),
+        Transform::identity(),
+        None,
+    );
     stitcher.set_initial_frame(frame0.clone());
 
     let mut prev_frame = frame0;
@@ -169,7 +176,9 @@ fn test_continuous_scrolling_stitch_10000px() {
         prev_frame = curr_frame;
     }
 
-    let stitched = stitcher.stitched_image().expect("Stitched image should exist");
+    let stitched = stitcher
+        .stitched_image()
+        .expect("Stitched image should exist");
     assert_eq!(stitched.width(), doc_w);
 
     // Verified height: initial (600) + 15 * (200 - 1) = 600 + 15 * 199 = 3585

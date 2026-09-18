@@ -49,7 +49,7 @@ impl SadFilter {
             }
         }
 
-        if scrollbar_width >= 3 && scrollbar_width <= 40 {
+        if (3..=40).contains(&scrollbar_width) {
             scrollbar_width + 4
         } else {
             0

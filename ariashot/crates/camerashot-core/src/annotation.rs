@@ -96,7 +96,11 @@ impl NumberFormat {
 
     fn to_alpha(mut n: usize, uppercase: bool) -> String {
         if n == 0 {
-            return if uppercase { "A".to_string() } else { "a".to_string() };
+            return if uppercase {
+                "A".to_string()
+            } else {
+                "a".to_string()
+            };
         }
         let base_char = if uppercase { b'A' } else { b'a' };
         let mut chars = Vec::new();
@@ -139,7 +143,13 @@ pub struct Annotation {
 }
 
 impl Annotation {
-    pub fn new(tool: AnnotationTool, start_point: Point, end_point: Point, color: [u8; 4], stroke_width: f64) -> Self {
+    pub fn new(
+        tool: AnnotationTool,
+        start_point: Point,
+        end_point: Point,
+        color: [u8; 4],
+        stroke_width: f64,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             group_id: None,

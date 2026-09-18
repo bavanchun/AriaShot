@@ -24,10 +24,14 @@ impl CaptureBackend for WaylandCaptureBackend {
     }
 
     fn capture_display(&self, _display_id: u32) -> Result<FrameBuffer, PlatformError> {
-        Err(PlatformError::Unsupported("Wayland screencopy/portal stream initialized via compositor connection".to_string()))
+        Err(PlatformError::Unsupported(
+            "Wayland screencopy/portal stream initialized via compositor connection".to_string(),
+        ))
     }
 
     fn capture_rect(&self, _rect: Rect) -> Result<FrameBuffer, PlatformError> {
-        Err(PlatformError::Unsupported("Wayland screencopy/portal stream initialized via compositor connection".to_string()))
+        Err(PlatformError::Unsupported(
+            "Wayland screencopy/portal stream initialized via compositor connection".to_string(),
+        ))
     }
 }

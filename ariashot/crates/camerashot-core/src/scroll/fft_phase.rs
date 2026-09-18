@@ -65,8 +65,10 @@ impl VerticalShiftEstimator {
                     let idx_curr = row_curr + x * 4;
 
                     let dr = (prev_data[idx_prev] as i32 - curr_data[idx_curr] as i32).abs();
-                    let dg = (prev_data[idx_prev + 1] as i32 - curr_data[idx_curr + 1] as i32).abs();
-                    let db = (prev_data[idx_prev + 2] as i32 - curr_data[idx_curr + 2] as i32).abs();
+                    let dg =
+                        (prev_data[idx_prev + 1] as i32 - curr_data[idx_curr + 1] as i32).abs();
+                    let db =
+                        (prev_data[idx_prev + 2] as i32 - curr_data[idx_curr + 2] as i32).abs();
 
                     total_diff += (dr + dg + db) as u64;
                     sample_count += 3;
@@ -107,8 +109,10 @@ impl VerticalShiftEstimator {
                         let idx_curr = row_curr + x * 4;
 
                         let dr = (prev_data[idx_prev] as i32 - curr_data[idx_curr] as i32).abs();
-                        let dg = (prev_data[idx_prev + 1] as i32 - curr_data[idx_curr + 1] as i32).abs();
-                        let db = (prev_data[idx_prev + 2] as i32 - curr_data[idx_curr + 2] as i32).abs();
+                        let dg =
+                            (prev_data[idx_prev + 1] as i32 - curr_data[idx_curr + 1] as i32).abs();
+                        let db =
+                            (prev_data[idx_prev + 2] as i32 - curr_data[idx_curr + 2] as i32).abs();
 
                         total_diff += (dr + dg + db) as u64;
                         sample_count += 3;

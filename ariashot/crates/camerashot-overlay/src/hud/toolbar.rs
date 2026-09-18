@@ -52,7 +52,10 @@ impl ToolbarLayout {
             bar_w: BAR_W,
             bar_h: BAR_H,
             buttons: [
-                (ToolbarAction::CopyToClipboard, [copy_x, btn_y, BTN_SIZE, BTN_SIZE]),
+                (
+                    ToolbarAction::CopyToClipboard,
+                    [copy_x, btn_y, BTN_SIZE, BTN_SIZE],
+                ),
                 (ToolbarAction::Close, [close_x, btn_y, BTN_SIZE, BTN_SIZE]),
             ],
         }
@@ -93,13 +96,21 @@ impl FloatingToolbar {
             let mut bg_paint = Paint::default();
             bg_paint.set_color_rgba8(28, 28, 32, 235);
             bg_paint.anti_alias = true;
-            pixmap.fill_path(&path, &bg_paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &bg_paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
 
             let mut border_paint = Paint::default();
             border_paint.set_color_rgba8(255, 255, 255, 30);
             border_paint.anti_alias = true;
-            let mut stroke = Stroke::default();
-            stroke.width = 1.0;
+            let stroke = Stroke {
+                width: 1.0,
+                ..Stroke::default()
+            };
             pixmap.stroke_path(&path, &border_paint, &stroke, Transform::identity(), None);
         }
 
@@ -118,7 +129,12 @@ impl FloatingToolbar {
     }
 
     /// Hit-test a point against toolbar buttons. Returns the action if a button was clicked.
-    pub fn hit_test(selection: Rect, canvas_w: u32, canvas_h: u32, pt: Point) -> Option<ToolbarAction> {
+    pub fn hit_test(
+        selection: Rect,
+        canvas_w: u32,
+        canvas_h: u32,
+        pt: Point,
+    ) -> Option<ToolbarAction> {
         let layout = ToolbarLayout::compute(selection, canvas_w, canvas_h);
         for &(action, [bx, by, bw, bh]) in &layout.buttons {
             let px = pt.x as f32;
@@ -136,8 +152,10 @@ fn draw_copy_icon(pixmap: &mut PixmapMut, bx: f32, by: f32, bw: f32, bh: f32) {
     let mut paint = Paint::default();
     paint.set_color_rgba8(220, 220, 225, 230);
     paint.anti_alias = true;
-    let mut stroke = Stroke::default();
-    stroke.width = 1.5;
+    let stroke = Stroke {
+        width: 1.5,
+        ..Stroke::default()
+    };
 
     let inset = 4.0;
     let offset = 3.0;
@@ -170,7 +188,13 @@ fn draw_copy_icon(pixmap: &mut PixmapMut, bx: f32, by: f32, bw: f32, bh: f32) {
         // Fill with bar background so front covers back
         let mut fill_paint = Paint::default();
         fill_paint.set_color_rgba8(28, 28, 32, 235);
-        pixmap.fill_path(&p, &fill_paint, FillRule::Winding, Transform::identity(), None);
+        pixmap.fill_path(
+            &p,
+            &fill_paint,
+            FillRule::Winding,
+            Transform::identity(),
+            None,
+        );
         pixmap.stroke_path(&p, &paint, &stroke, Transform::identity(), None);
     }
 }
@@ -180,8 +204,10 @@ fn draw_close_icon(pixmap: &mut PixmapMut, bx: f32, by: f32, bw: f32, bh: f32) {
     let mut paint = Paint::default();
     paint.set_color_rgba8(220, 220, 225, 230);
     paint.anti_alias = true;
-    let mut stroke = Stroke::default();
-    stroke.width = 2.0;
+    let stroke = Stroke {
+        width: 2.0,
+        ..Stroke::default()
+    };
 
     let inset = 6.0;
     let mut pb = PathBuilder::new();

@@ -13,8 +13,18 @@ fn synthetic_session(n: usize, w: u32, h: u32, fps: u32) -> RecordingSession {
     for i in 0..n {
         let pts = Duration::from_secs_f64(i as f64 * frame_dur);
         // Unique pixel pattern so composited frames differ when censored
-        let pixel = [(i % 256) as u8, ((i * 37) % 256) as u8, ((i * 73) % 256) as u8, 255u8];
-        let rgba_data: Vec<u8> = pixel.iter().copied().cycle().take((w * h * 4) as usize).collect();
+        let pixel = [
+            (i % 256) as u8,
+            ((i * 37) % 256) as u8,
+            ((i * 73) % 256) as u8,
+            255u8,
+        ];
+        let rgba_data: Vec<u8> = pixel
+            .iter()
+            .copied()
+            .cycle()
+            .take((w * h * 4) as usize)
+            .collect();
         frames.push(RecordedVideoFrame {
             pts,
             width: w,
@@ -100,7 +110,11 @@ fn test_add_cut_and_next_play_time_skips_cut() {
     // next_play_time from 0.95 with dt=0.1 → next=1.05 is in cut → should skip to ≥ 2.0
     let next = vs.next_play_time(0.95, 0.1);
     assert!(next.is_some(), "Should produce a next time");
-    assert!(next.unwrap() >= 2.0, "Should skip past cut, got {}", next.unwrap());
+    assert!(
+        next.unwrap() >= 2.0,
+        "Should skip past cut, got {}",
+        next.unwrap()
+    );
 }
 
 #[test]
@@ -190,7 +204,11 @@ fn test_render_at_with_censor_differs_from_original() {
     // At least some pixels should differ (the censor box covers 20%×12%)
     let c = censored.unwrap();
     let o = original.unwrap();
-    let differs = c.rgba_data.iter().zip(o.rgba_data.iter()).any(|(a, b)| a != b);
+    let differs = c
+        .rgba_data
+        .iter()
+        .zip(o.rgba_data.iter())
+        .any(|(a, b)| a != b);
     // Note: if compositor doesn't modify for small rect, this might be same.
     // The test mainly validates render_at doesn't crash.
     let _ = differs;
@@ -204,7 +222,11 @@ fn test_render_at_with_censor_differs_from_original() {
 fn test_export_gif_starts_with_gif8() {
     let vs = test_session();
     let gif_bytes = vs.export_gif();
-    assert!(gif_bytes.is_ok(), "export_gif failed: {:?}", gif_bytes.err());
+    assert!(
+        gif_bytes.is_ok(),
+        "export_gif failed: {:?}",
+        gif_bytes.err()
+    );
     let bytes = gif_bytes.unwrap();
     assert!(bytes.len() > 4, "GIF too small");
     assert_eq!(&bytes[..4], b"GIF8", "Should start with GIF8 magic bytes");

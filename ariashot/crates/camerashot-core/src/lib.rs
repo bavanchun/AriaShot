@@ -18,4 +18,3 @@ pub use renderer::AnnotationRenderer;
 pub use scroll::{SadFilter, ScrollStitcher, SettlementDetector, VerticalShiftEstimator};
 pub use snap_index::{BoundarySnapIndex, Hit};
 pub use undo::{UndoAction, UndoStack};
-

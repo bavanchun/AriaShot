@@ -47,7 +47,11 @@ impl TimelineCompositor {
                     current_frame = Self::apply_zoom(
                         &current_frame,
                         zoom,
-                        zoom_seg.crop_rect(zoom, current_frame.width as f64, current_frame.height as f64),
+                        zoom_seg.crop_rect(
+                            zoom,
+                            current_frame.width as f64,
+                            current_frame.height as f64,
+                        ),
                     );
                 }
             }
@@ -96,7 +100,8 @@ impl TimelineCompositor {
                 let src_idx = (sy * src_w + sx) * 4;
                 let dst_idx = (dy * dst_w + dx) * 4;
 
-                zoomed_data[dst_idx..dst_idx + 4].copy_from_slice(&frame.rgba_data[src_idx..src_idx + 4]);
+                zoomed_data[dst_idx..dst_idx + 4]
+                    .copy_from_slice(&frame.rgba_data[src_idx..src_idx + 4]);
             }
         }
 

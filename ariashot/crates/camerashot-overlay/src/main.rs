@@ -34,7 +34,12 @@ fn main() -> ExitCode {
         }
     };
 
-    info!("Capturing display: {} ({}×{})", primary.name, primary.bounds.width(), primary.bounds.height());
+    info!(
+        "Capturing display: {} ({}×{})",
+        primary.name,
+        primary.bounds.width(),
+        primary.bounds.height()
+    );
 
     let frame = match backend.capture_display(primary.id) {
         Ok(f) => f,

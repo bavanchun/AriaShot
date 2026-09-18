@@ -1,5 +1,6 @@
 use crate::vision_macos::OcrBlock;
 
+#[derive(Default)]
 pub struct RapidOnnxOcr;
 
 impl RapidOnnxOcr {

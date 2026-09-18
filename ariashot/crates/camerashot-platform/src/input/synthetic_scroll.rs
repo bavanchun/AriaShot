@@ -18,7 +18,9 @@ impl SyntheticScroll {
 
         #[cfg(not(any(target_os = "macos", target_os = "linux")))]
         {
-            Err(PlatformError::Unsupported("Synthetic scroll not supported on this OS".to_string()))
+            Err(PlatformError::Unsupported(
+                "Synthetic scroll not supported on this OS".to_string(),
+            ))
         }
     }
 
@@ -52,7 +54,9 @@ impl SyntheticScroll {
                 0,
             );
             if event.is_null() {
-                return Err(PlatformError::CaptureFailed("Failed to create scroll CGEvent".to_string()));
+                return Err(PlatformError::CaptureFailed(
+                    "Failed to create scroll CGEvent".to_string(),
+                ));
             }
             CGEventPost(K_CG_HID_EVENT_TAP, event);
             CFRelease(event);

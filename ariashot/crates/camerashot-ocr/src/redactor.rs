@@ -59,16 +59,34 @@ impl Default for PiiDetector {
 impl PiiDetector {
     pub fn new() -> Self {
         let defs: Vec<(PiiCategory, &str)> = vec![
-            (PiiCategory::Email, r"(?i)[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"),
-            (PiiCategory::Phone, r"(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}"),
+            (
+                PiiCategory::Email,
+                r"(?i)[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}",
+            ),
+            (
+                PiiCategory::Phone,
+                r"(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}",
+            ),
             (PiiCategory::Ssn, r"\b\d{3}[-\s]\d{2}[-\s]\d{4}\b"),
             (PiiCategory::CreditCard, r"\b(?:\d{4}[-\s]*){3}\d{1,7}\b"),
             (PiiCategory::CreditCard, r"\b\d{4}[-\s]*\d{6}[-\s]*\d{5}\b"),
             (PiiCategory::Cvv, r"(?i)(?:CVV|CVC|CSC|CCV)\s*:?\s*\d{3,4}"),
-            (PiiCategory::Expiry, r"\b(?:\d{2}[/\-]\d{2,4}|\d{4}[/\-]\d{2})\b"),
-            (PiiCategory::Ipv4, r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b"),
-            (PiiCategory::AwsKey, r"\b(?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}\b"),
-            (PiiCategory::SecretAssignment, r"(?i)(?:password|passwd|secret|token|api[_-]?key|access[_-]?key|private[_-]?key)\s*[:=]\s*\S+"),
+            (
+                PiiCategory::Expiry,
+                r"\b(?:\d{2}[/\-]\d{2,4}|\d{4}[/\-]\d{2})\b",
+            ),
+            (
+                PiiCategory::Ipv4,
+                r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b",
+            ),
+            (
+                PiiCategory::AwsKey,
+                r"\b(?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16}\b",
+            ),
+            (
+                PiiCategory::SecretAssignment,
+                r"(?i)(?:password|passwd|secret|token|api[_-]?key|access[_-]?key|private[_-]?key)\s*[:=]\s*\S+",
+            ),
             (PiiCategory::HexKey, r"\b[0-9a-fA-F]{32,64}\b"),
             (PiiCategory::BearerToken, r"Bearer\s+[A-Za-z0-9\-._~+/]+=*"),
         ];
@@ -166,7 +184,8 @@ impl PiiRedactor {
                 let frac_x = char_start / text_len;
                 let frac_w = char_len / text_len;
 
-                let sub_x = (block_rect.origin.x + frac_x * block_rect.size.width - padding).max(0.0);
+                let sub_x =
+                    (block_rect.origin.x + frac_x * block_rect.size.width - padding).max(0.0);
                 let sub_y = (block_rect.origin.y - padding).max(0.0);
                 let sub_w = frac_w * block_rect.size.width + padding * 2.0;
                 let sub_h = block_rect.size.height + padding * 2.0;

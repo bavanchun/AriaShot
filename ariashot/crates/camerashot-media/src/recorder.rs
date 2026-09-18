@@ -1,8 +1,9 @@
 use crate::audio::{AudioConfig, AudioMixer};
 use crate::gif::GifExporter;
-use crate::video::{MediaError, PtsAccumulator, RecordedVideoFrame, VideoEncoder, VideoEncoderConfig};
+use crate::video::{
+    MediaError, PtsAccumulator, RecordedVideoFrame, VideoEncoder, VideoEncoderConfig,
+};
 use std::time::Duration;
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecordingState {
@@ -112,7 +113,10 @@ impl ScreenRecorder {
         }
         self.pts.pause();
         self.state = RecordingState::Paused;
-        tracing::info!("Screen recording paused at PTS {:?}", self.pts.current_pts());
+        tracing::info!(
+            "Screen recording paused at PTS {:?}",
+            self.pts.current_pts()
+        );
         Ok(())
     }
 
@@ -122,7 +126,10 @@ impl ScreenRecorder {
         }
         self.pts.resume();
         self.state = RecordingState::Recording;
-        tracing::info!("Screen recording resumed at PTS {:?}", self.pts.current_pts());
+        tracing::info!(
+            "Screen recording resumed at PTS {:?}",
+            self.pts.current_pts()
+        );
         Ok(())
     }
 

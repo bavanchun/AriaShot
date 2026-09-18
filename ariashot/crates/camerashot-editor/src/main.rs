@@ -43,6 +43,7 @@ fn main() {
     };
 
     let session = Arc::new(Mutex::new(session));
+    #[allow(clippy::arc_with_non_send_sync)]
     let video_state = Arc::new(Mutex::new(VideoState::default()));
     let ui = MainEditorWindow::new().expect("Failed to create editor window");
 

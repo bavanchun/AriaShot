@@ -47,10 +47,12 @@ impl AnnotationRenderer {
 
     fn stroke_for_style(ann: &Annotation) -> Stroke {
         let w = ann.stroke_width as f32;
-        let mut stroke = Stroke::default();
-        stroke.width = w;
-        stroke.line_cap = LineCap::Round;
-        stroke.line_join = LineJoin::Round;
+        let mut stroke = Stroke {
+            width: w,
+            line_cap: LineCap::Round,
+            line_join: LineJoin::Round,
+            ..Stroke::default()
+        };
 
         match ann.line_style {
             LineStyle::Solid => {}
@@ -142,7 +144,13 @@ impl AnnotationRenderer {
         head_pb.close();
 
         if let Some(head_path) = head_pb.finish() {
-            pixmap.fill_path(&head_path, &paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &head_path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     }
 
@@ -175,13 +183,21 @@ impl AnnotationRenderer {
 
         if fill_style == RectFillStyle::Fill || fill_style == RectFillStyle::StrokeAndFill {
             let mut fill_paint = Paint::default();
-            let fc = ann.fill_color.unwrap_or([ann.color[0], ann.color[1], ann.color[2], 80]);
+            let fc = ann
+                .fill_color
+                .unwrap_or([ann.color[0], ann.color[1], ann.color[2], 80]);
             fill_paint.set_color(Self::color_from_rgba(fc));
             fill_paint.anti_alias = true;
             let mut pb = PathBuilder::new();
             pb.push_rect(sk_rect);
             if let Some(path) = pb.finish() {
-                pixmap.fill_path(&path, &fill_paint, FillRule::Winding, Transform::identity(), None);
+                pixmap.fill_path(
+                    &path,
+                    &fill_paint,
+                    FillRule::Winding,
+                    Transform::identity(),
+                    None,
+                );
             }
         }
     }
@@ -205,7 +221,13 @@ impl AnnotationRenderer {
         let mut pb = PathBuilder::new();
         pb.push_rect(sk_rect);
         if let Some(path) = pb.finish() {
-            pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     }
 
@@ -222,7 +244,7 @@ impl AnnotationRenderer {
 
         let mut pb = PathBuilder::new();
         // Approximate ellipse via cubic beziers
-        let kappa = 0.55228475f32;
+        let kappa = 0.552_284_8_f32;
         let ox = rx * kappa;
         let oy = ry * kappa;
 
@@ -262,10 +284,12 @@ impl AnnotationRenderer {
             paint.set_color(Self::color_from_rgba(c));
             paint.anti_alias = true;
 
-            let mut stroke = Stroke::default();
-            stroke.width = (ann.stroke_width as f32).max(18.0);
-            stroke.line_cap = LineCap::Round;
-            stroke.line_join = LineJoin::Round;
+            let stroke = Stroke {
+                width: (ann.stroke_width as f32).max(18.0),
+                line_cap: LineCap::Round,
+                line_join: LineJoin::Round,
+                ..Stroke::default()
+            };
 
             pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
         }
@@ -283,14 +307,22 @@ impl AnnotationRenderer {
             let mut fill_paint = Paint::default();
             fill_paint.set_color(Self::color_from_rgba(ann.color));
             fill_paint.anti_alias = true;
-            pixmap.fill_path(&path, &fill_paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &fill_paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
 
             // Border
             let mut stroke_paint = Paint::default();
             stroke_paint.set_color_rgba8(255, 255, 255, 255);
             stroke_paint.anti_alias = true;
-            let mut stroke = Stroke::default();
-            stroke.width = 2.0;
+            let stroke = Stroke {
+                width: 2.0,
+                ..Stroke::default()
+            };
             pixmap.stroke_path(&path, &stroke_paint, &stroke, Transform::identity(), None);
         }
     }
@@ -335,8 +367,10 @@ impl AnnotationRenderer {
             let mut paint = Paint::default();
             paint.set_color(Self::color_from_rgba(ann.color));
             paint.anti_alias = true;
-            let mut stroke = Stroke::default();
-            stroke.width = 1.5;
+            let stroke = Stroke {
+                width: 1.5,
+                ..Stroke::default()
+            };
             pixmap.stroke_path(&path, &paint, &stroke, Transform::identity(), None);
         }
 
@@ -347,14 +381,25 @@ impl AnnotationRenderer {
         let badge_h = 20.0f32;
 
         let mut badge_pb = PathBuilder::new();
-        if let Some(r) = SkRect::from_xywh(mid_x - badge_w / 2.0, mid_y - badge_h / 2.0, badge_w, badge_h) {
+        if let Some(r) = SkRect::from_xywh(
+            mid_x - badge_w / 2.0,
+            mid_y - badge_h / 2.0,
+            badge_w,
+            badge_h,
+        ) {
             badge_pb.push_rect(r);
         }
         if let Some(badge_path) = badge_pb.finish() {
             let mut bg_paint = Paint::default();
             bg_paint.set_color_rgba8(20, 20, 24, 220);
             bg_paint.anti_alias = true;
-            pixmap.fill_path(&badge_path, &bg_paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &badge_path,
+                &bg_paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     }
 
@@ -420,7 +465,7 @@ impl AnnotationRenderer {
             return;
         }
 
-        let radius = (ann.blur_radius.unwrap_or(8.0).round() as usize).max(2).min(32);
+        let radius = (ann.blur_radius.unwrap_or(8.0).round() as usize).clamp(2, 32);
         let full_w = pixmap.width() as usize;
         let data = pixmap.data_mut();
 
@@ -475,7 +520,13 @@ impl AnnotationRenderer {
             let mut paint = Paint::default();
             paint.set_color_rgba8(0, 0, 0, 140); // Dimming overlay
             paint.anti_alias = true;
-            pixmap.fill_path(&path, &paint, FillRule::EvenOdd, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &paint,
+                FillRule::EvenOdd,
+                Transform::identity(),
+                None,
+            );
         }
     }
 
@@ -496,7 +547,13 @@ impl AnnotationRenderer {
             bg[3] = 40;
             paint.set_color(Self::color_from_rgba(bg));
             paint.anti_alias = true;
-            pixmap.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            pixmap.fill_path(
+                &path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
 
             let stroke = Self::stroke_for_style(ann);
             let mut border_paint = Paint::default();

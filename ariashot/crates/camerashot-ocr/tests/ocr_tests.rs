@@ -9,11 +9,15 @@ fn test_pii_detector_11_patterns() {
 
     // 1. Email
     let email_matches = detector.scan_text("Contact me at user.name+dev@example.co.uk please");
-    assert!(email_matches.iter().any(|m| m.category == PiiCategory::Email));
+    assert!(email_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::Email));
 
     // 2. Phone
     let phone_matches = detector.scan_text("Call +1 415-555-2671 or 555-1234");
-    assert!(phone_matches.iter().any(|m| m.category == PiiCategory::Phone));
+    assert!(phone_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::Phone));
 
     // 3. SSN
     let ssn_matches = detector.scan_text("SSN: 123-45-6789 confidential");
@@ -21,7 +25,9 @@ fn test_pii_detector_11_patterns() {
 
     // 4. Credit Card
     let cc_matches = detector.scan_text("Card: 4532 1123 4567 8901 visa");
-    assert!(cc_matches.iter().any(|m| m.category == PiiCategory::CreditCard));
+    assert!(cc_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::CreditCard));
 
     // 5. CVV
     let cvv_matches = detector.scan_text("Security code CVV: 789 on back");
@@ -29,7 +35,9 @@ fn test_pii_detector_11_patterns() {
 
     // 6. Expiry
     let exp_matches = detector.scan_text("Valid thru 12/28 or 2026-09");
-    assert!(exp_matches.iter().any(|m| m.category == PiiCategory::Expiry));
+    assert!(exp_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::Expiry));
 
     // 7. IPv4
     let ip_matches = detector.scan_text("Server listening on 192.168.1.105:8080");
@@ -37,19 +45,29 @@ fn test_pii_detector_11_patterns() {
 
     // 8. AWS Key
     let aws_matches = detector.scan_text("export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE");
-    assert!(aws_matches.iter().any(|m| m.category == PiiCategory::AwsKey));
+    assert!(aws_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::AwsKey));
 
     // 9. Secret Assignment
     let secret_matches = detector.scan_text("api_key: secret_token_99182a17z");
-    assert!(secret_matches.iter().any(|m| m.category == PiiCategory::SecretAssignment));
+    assert!(secret_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::SecretAssignment));
 
     // 10. Hex Key
-    let hex_matches = detector.scan_text("Hash: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8");
-    assert!(hex_matches.iter().any(|m| m.category == PiiCategory::HexKey));
+    let hex_matches = detector
+        .scan_text("Hash: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8");
+    assert!(hex_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::HexKey));
 
     // 11. Bearer Token
-    let bearer_matches = detector.scan_text("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xyz");
-    assert!(bearer_matches.iter().any(|m| m.category == PiiCategory::BearerToken));
+    let bearer_matches =
+        detector.scan_text("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xyz");
+    assert!(bearer_matches
+        .iter()
+        .any(|m| m.category == PiiCategory::BearerToken));
 }
 
 #[test]
@@ -58,11 +76,8 @@ fn test_pii_redactor_batch_undo_integration() {
     let text = "Contact support@example.com or call 123-45-6789";
     let block_rect = Rect::new(100.0, 200.0, 400.0, 30.0);
 
-    let (batch_id, annotations) = redactor.build_redactions_for_blocks(
-        &[(text, block_rect)],
-        AnnotationTool::Pixelate,
-        2.0,
-    );
+    let (batch_id, annotations) =
+        redactor.build_redactions_for_blocks(&[(text, block_rect)], AnnotationTool::Pixelate, 2.0);
 
     assert_eq!(annotations.len(), 2); // 1 email + 1 ssn
     for ann in &annotations {

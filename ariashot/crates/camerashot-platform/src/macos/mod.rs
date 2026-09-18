@@ -20,8 +20,9 @@ impl Default for MacOSCaptureBackend {
 
 impl CaptureBackend for MacOSCaptureBackend {
     fn enumerate_displays(&self) -> Result<Vec<PlatformDisplay>, PlatformError> {
-        let display_ids = CGDisplay::active_displays()
-            .map_err(|e| PlatformError::CaptureFailed(format!("Failed to list active displays: {:?}", e)))?;
+        let display_ids = CGDisplay::active_displays().map_err(|e| {
+            PlatformError::CaptureFailed(format!("Failed to list active displays: {:?}", e))
+        })?;
 
         let main_id = CGDisplay::main().id;
         let mut displays = Vec::with_capacity(display_ids.len());
@@ -58,9 +59,9 @@ impl CaptureBackend for MacOSCaptureBackend {
 
     fn capture_display(&self, display_id: u32) -> Result<FrameBuffer, PlatformError> {
         let display = CGDisplay::new(display_id);
-        let image = display
-            .image()
-            .ok_or_else(|| PlatformError::CaptureFailed(format!("Failed to capture CGDisplay {}", display_id)))?;
+        let image = display.image().ok_or_else(|| {
+            PlatformError::CaptureFailed(format!("Failed to capture CGDisplay {}", display_id))
+        })?;
 
         let width = image.width();
         let height = image.height();
@@ -90,7 +91,9 @@ impl CaptureBackend for MacOSCaptureBackend {
             0,
             kCGWindowImageBestResolution,
         )
-        .ok_or_else(|| PlatformError::CaptureFailed(format!("Failed to capture rect {:?}", rect)))?;
+        .ok_or_else(|| {
+            PlatformError::CaptureFailed(format!("Failed to capture rect {:?}", rect))
+        })?;
 
         let width = image.width();
         let height = image.height();

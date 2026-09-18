@@ -130,7 +130,7 @@ fn test_gif_exporter_synthetic_animation() {
 
     for i in 0..num_frames {
         let r = (i * 60) as u8;
-        let g = 100 as u8;
+        let g = 100_u8;
         let b = (255 - i * 60) as u8;
 
         let mut rgba = Vec::with_capacity((width * height * 4) as usize);

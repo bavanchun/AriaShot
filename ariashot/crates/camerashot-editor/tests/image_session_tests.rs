@@ -104,7 +104,10 @@ fn test_default_save_path_without_source() {
     let path_str = path.to_string_lossy();
 
     // Should be in ~/Pictures/AriaShot/ariashot-YYYYMMDD-HHMMSS.png
-    assert!(path_str.contains("Pictures/AriaShot/ariashot-"), "path = {path_str}");
+    assert!(
+        path_str.contains("Pictures/AriaShot/ariashot-"),
+        "path = {path_str}"
+    );
     assert!(path_str.ends_with(".png"), "path = {path_str}");
 }
 
@@ -139,7 +142,11 @@ fn test_from_file_with_fixture() {
 
     if fixture.exists() {
         let session = ImageSession::from_file(&fixture);
-        assert!(session.is_ok(), "Failed to load fixture: {:?}", session.err());
+        assert!(
+            session.is_ok(),
+            "Failed to load fixture: {:?}",
+            session.err()
+        );
         let session = session.unwrap();
         assert!(session.width() > 0);
         assert!(session.height() > 0);

@@ -24,10 +24,14 @@ impl CaptureBackend for X11CaptureBackend {
     }
 
     fn capture_display(&self, _display_id: u32) -> Result<FrameBuffer, PlatformError> {
-        Err(PlatformError::Unsupported("X11 native SHM driver initialized via display server connection".to_string()))
+        Err(PlatformError::Unsupported(
+            "X11 native SHM driver initialized via display server connection".to_string(),
+        ))
     }
 
     fn capture_rect(&self, _rect: Rect) -> Result<FrameBuffer, PlatformError> {
-        Err(PlatformError::Unsupported("X11 native SHM driver initialized via display server connection".to_string()))
+        Err(PlatformError::Unsupported(
+            "X11 native SHM driver initialized via display server connection".to_string(),
+        ))
     }
 }

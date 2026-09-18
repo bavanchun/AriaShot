@@ -63,16 +63,15 @@ impl AudioMixer {
 
     /// Mix system audio and microphone buffers together into output buffer.
     /// Applies soft clipping ($\tanh(x)$) to eliminate harsh digital clipping if sum exceeds $\pm 1.0$.
-    pub fn mix(
-        &self,
-        system_audio: &[f32],
-        mic_audio: &[f32],
-        out: &mut Vec<f32>,
-    ) {
+    pub fn mix(&self, system_audio: &[f32], mic_audio: &[f32], out: &mut Vec<f32>) {
         let max_len = system_audio.len().max(mic_audio.len());
         out.reserve(max_len);
 
-        let sys_gain = if self.mute_system { 0.0 } else { self.system_volume };
+        let sys_gain = if self.mute_system {
+            0.0
+        } else {
+            self.system_volume
+        };
         let mic_gain = if self.mute_mic { 0.0 } else { self.mic_volume };
 
         for i in 0..max_len {

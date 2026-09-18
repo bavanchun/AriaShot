@@ -96,7 +96,11 @@ mod vision_tests {
             .expect("Vision OCR should not fail on fixture");
 
         // Fixture contains "jane.doe@example.com" — Vision should find it
-        let all_text: String = blocks.iter().map(|b| b.text.as_str()).collect::<Vec<_>>().join(" ");
+        let all_text: String = blocks
+            .iter()
+            .map(|b| b.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
         assert!(
             all_text.contains("jane.doe@example.com") || all_text.contains("jane.doe@example"),
             "Vision did not find email in fixture. Got: {all_text}"
@@ -129,15 +133,9 @@ mod vision_tests {
     fn test_detect_redactions_produces_annotations() {
         let (rgba, w, h) = load_fixture();
         let engine = OcrEngine::new();
-        let (batch_id, annotations) = detect_redactions(
-            &engine,
-            &rgba,
-            w,
-            h,
-            AnnotationTool::Pixelate,
-            2.0,
-        )
-        .expect("detect_redactions should not fail on fixture");
+        let (batch_id, annotations) =
+            detect_redactions(&engine, &rgba, w, h, AnnotationTool::Pixelate, 2.0)
+                .expect("detect_redactions should not fail on fixture");
 
         // Fixture has PII (email + credit card) — should produce at least 1 annotation
         assert!(

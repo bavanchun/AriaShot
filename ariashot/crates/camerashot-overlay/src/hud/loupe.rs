@@ -1,7 +1,7 @@
 use camerashot_core::geometry::Point;
 use tiny_skia::{
-    FillRule, Mask, Paint, PathBuilder, Pixmap, PixmapMut, PixmapPaint, PixmapRef,
-    Rect as SkRect, Stroke, Transform,
+    FillRule, Mask, Paint, PathBuilder, Pixmap, PixmapMut, PixmapPaint, PixmapRef, Rect as SkRect,
+    Stroke, Transform,
 };
 
 pub struct Loupe;
@@ -41,7 +41,12 @@ pub fn sample_magnified(bg: PixmapRef, cursor: Point, radius: u32) -> Pixmap {
 
             let (r, g, b, a) = if src_x >= 0 && src_x < bw && src_y >= 0 && src_y < bh {
                 let idx = ((src_y as usize) * (bw as usize) + (src_x as usize)) * 4;
-                (bg_data[idx], bg_data[idx + 1], bg_data[idx + 2], bg_data[idx + 3])
+                (
+                    bg_data[idx],
+                    bg_data[idx + 1],
+                    bg_data[idx + 2],
+                    bg_data[idx + 3],
+                )
             } else {
                 (0, 0, 0, 0)
             };
@@ -86,17 +91,12 @@ impl Loupe {
 
         // Build circular clip mask
         let mask = {
-            let mut m = Mask::new(pixmap.width(), pixmap.height())
-                .expect("mask dimensions match pixmap");
+            let mut m =
+                Mask::new(pixmap.width(), pixmap.height()).expect("mask dimensions match pixmap");
             let mut circle_pb = PathBuilder::new();
             circle_pb.push_circle(cx, cy, lens_radius);
             if let Some(circle_path) = circle_pb.finish() {
-                m.fill_path(
-                    &circle_path,
-                    FillRule::Winding,
-                    true,
-                    Transform::identity(),
-                );
+                m.fill_path(&circle_path, FillRule::Winding, true, Transform::identity());
             }
             m
         };
@@ -104,7 +104,9 @@ impl Loupe {
         // Draw dark background through circular mask
         {
             let mut bg_pb = PathBuilder::new();
-            if let Some(r) = SkRect::from_xywh(cx - lens_radius, cy - lens_radius, diameter, diameter) {
+            if let Some(r) =
+                SkRect::from_xywh(cx - lens_radius, cy - lens_radius, diameter, diameter)
+            {
                 bg_pb.push_rect(r);
             }
             if let Some(bg_path) = bg_pb.finish() {
@@ -138,7 +140,7 @@ impl Loupe {
             let top_x = cx - lens_radius;
             let top_y = cy - lens_radius;
             let step = MAG as f32;
-            let count = (RADIUS * 2 / MAG) as u32;
+            let count = RADIUS * 2 / MAG;
 
             for i in 1..count {
                 let offset = (i as f32) * step;
@@ -152,8 +154,10 @@ impl Loupe {
             if let Some(grid_path) = grid_pb.finish() {
                 let mut grid_paint = Paint::default();
                 grid_paint.set_color_rgba8(255, 255, 255, 25);
-                let mut grid_stroke = Stroke::default();
-                grid_stroke.width = 0.5;
+                let grid_stroke = Stroke {
+                    width: 0.5,
+                    ..Stroke::default()
+                };
                 pixmap.stroke_path(
                     &grid_path,
                     &grid_paint,
@@ -176,9 +180,17 @@ impl Loupe {
                 let mut highlight_paint = Paint::default();
                 highlight_paint.set_color_rgba8(255, 255, 255, 200);
                 highlight_paint.anti_alias = true;
-                let mut hs = Stroke::default();
-                hs.width = 1.5;
-                pixmap.stroke_path(&cp, &highlight_paint, &hs, Transform::identity(), Some(&mask));
+                let hs = Stroke {
+                    width: 1.5,
+                    ..Stroke::default()
+                };
+                pixmap.stroke_path(
+                    &cp,
+                    &highlight_paint,
+                    &hs,
+                    Transform::identity(),
+                    Some(&mask),
+                );
             }
         }
 
@@ -190,8 +202,10 @@ impl Loupe {
                 let mut border_paint = Paint::default();
                 border_paint.set_color_rgba8(255, 255, 255, 220);
                 border_paint.anti_alias = true;
-                let mut stroke = Stroke::default();
-                stroke.width = 2.5;
+                let stroke = Stroke {
+                    width: 2.5,
+                    ..Stroke::default()
+                };
                 pixmap.stroke_path(
                     &border_path,
                     &border_paint,
@@ -210,8 +224,10 @@ impl Loupe {
             cross_pb.move_to(cx, cy - 12.0);
             cross_pb.line_to(cx, cy + 12.0);
             if let Some(cross_path) = cross_pb.finish() {
-                let mut cross_stroke = Stroke::default();
-                cross_stroke.width = 1.0;
+                let cross_stroke = Stroke {
+                    width: 1.0,
+                    ..Stroke::default()
+                };
                 let mut cross_paint = Paint::default();
                 cross_paint.set_color_rgba8(255, 255, 255, 180);
                 pixmap.stroke_path(

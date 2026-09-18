@@ -9,8 +9,8 @@ slint::include_modules!();
 use crate::app::image_session::ImageSession;
 use crate::app::recording::{RecordingConfig, RecordingHandle};
 use crate::app::video_session::VideoSession;
-use camerashot_core::AnnotationTool;
 use camerashot_core::geometry::Point;
+use camerashot_core::AnnotationTool;
 use camerashot_media::RecordedVideoFrame;
 use camerashot_ocr::{blocks_to_text, detect_redactions, OcrEngine};
 use camerashot_platform::clipboard;
@@ -53,7 +53,7 @@ pub fn bind_image_mode(
     // Initial canvas render
     {
         let s = session.lock();
-        refresh_canvas(ui, &*s);
+        refresh_canvas(ui, &s);
         ui.set_status_text(slint::SharedString::from("Ready"));
     }
 
@@ -83,7 +83,11 @@ pub fn bind_image_mode(
                 // Image mode
                 let s = session.lock();
                 let composited = s.composite();
-                (composited.width(), composited.height(), composited.data().to_vec())
+                (
+                    composited.width(),
+                    composited.height(),
+                    composited.data().to_vec(),
+                )
             };
             match clipboard::copy_rgba_image(w, h, &data) {
                 Ok(_) => {
@@ -121,9 +125,8 @@ pub fn bind_image_mode(
 
                     std::thread::spawn(move || {
                         let result = gif_result.and_then(|bytes| {
-                            std::fs::write(&path, &bytes).map_err(|e| {
-                                camerashot_media::MediaError::Io(e)
-                            })?;
+                            std::fs::write(&path, &bytes)
+                                .map_err(camerashot_media::MediaError::Io)?;
                             Ok(path)
                         });
                         let _ = slint::invoke_from_event_loop(move || {
@@ -173,7 +176,7 @@ pub fn bind_image_mode(
             let mut s = session.lock();
             if s.undo() {
                 if let Some(ui) = ui_weak.upgrade() {
-                    refresh_canvas(&ui, &*s);
+                    refresh_canvas(&ui, &s);
                     ui.set_status_text(slint::SharedString::from("Undo"));
                 }
             }
@@ -188,7 +191,7 @@ pub fn bind_image_mode(
             let mut s = session.lock();
             if s.redo() {
                 if let Some(ui) = ui_weak.upgrade() {
-                    refresh_canvas(&ui, &*s);
+                    refresh_canvas(&ui, &s);
                     ui.set_status_text(slint::SharedString::from("Redo"));
                 }
             }
@@ -234,7 +237,7 @@ pub fn bind_image_mode(
                 let iw = s.width() as f32;
                 let ih = s.height() as f32;
                 if iw > 0.0 && ih > 0.0 {
-                    let z = (avail_w / iw).min(avail_h / ih).min(8.0).max(0.1);
+                    let z = (avail_w / iw).min(avail_h / ih).clamp(0.1, 8.0);
                     ui.set_zoom_level(z);
                 }
             }
@@ -300,9 +303,7 @@ pub fn bind_image_mode(
                         ui.set_status_text(slint::SharedString::from("OCR text copied"));
                     }
                     Err(e) => {
-                        ui.set_status_text(slint::SharedString::from(format!(
-                            "Copy failed: {e}"
-                        )));
+                        ui.set_status_text(slint::SharedString::from(format!("Copy failed: {e}")));
                     }
                 }
             }
@@ -345,7 +346,7 @@ pub fn bind_image_mode(
                                 let count = {
                                     let mut s = session.lock();
                                     let n = s.apply_redaction_batch(group_id, annotations);
-                                    refresh_canvas(&ui, &*s);
+                                    refresh_canvas(&ui, &s);
                                     n
                                 };
                                 if count > 0 {
@@ -354,9 +355,7 @@ pub fn bind_image_mode(
                                         count
                                     )));
                                 } else {
-                                    ui.set_status_text(slint::SharedString::from(
-                                        "No PII found",
-                                    ));
+                                    ui.set_status_text(slint::SharedString::from("No PII found"));
                                 }
                             }
                             Err(e) => {
@@ -424,20 +423,11 @@ fn default_gif_path() -> PathBuf {
 }
 
 /// Shared video state — wrapped in `Arc<Mutex<_>>` for cross-callback access.
+#[derive(Default)]
 pub struct VideoState {
     pub video_session: Option<VideoSession>,
     pub recording: Option<RecordingHandle>,
     pub playback_timer: Option<slint::Timer>,
-}
-
-impl Default for VideoState {
-    fn default() -> Self {
-        Self {
-            video_session: None,
-            recording: None,
-            playback_timer: None,
-        }
-    }
 }
 
 /// Bind video-mode callbacks: Record/Stop, playback, seek, edit, export, exit.
@@ -479,34 +469,29 @@ pub fn bind_video_mode(
                 // Start recording
                 let config = RecordingConfig::default();
                 match camerashot_platform::create_default_backend() {
-                    Ok(backend) => {
-                        match backend.enumerate_displays() {
-                            Ok(displays) => {
-                                let primary = displays
-                                    .iter()
-                                    .find(|d| d.is_primary)
-                                    .or_else(|| displays.first());
-                                if let Some(disp) = primary {
-                                    let handle =
-                                        RecordingHandle::start(backend, disp.id, config);
-                                    state.recording = Some(handle);
-                                    if let Some(ui) = ui_weak.upgrade() {
-                                        ui.set_is_recording(true);
-                                        ui.set_status_text(slint::SharedString::from(
-                                            "Recording…",
-                                        ));
-                                    }
-                                }
-                            }
-                            Err(e) => {
+                    Ok(backend) => match backend.enumerate_displays() {
+                        Ok(displays) => {
+                            let primary = displays
+                                .iter()
+                                .find(|d| d.is_primary)
+                                .or_else(|| displays.first());
+                            if let Some(disp) = primary {
+                                let handle = RecordingHandle::start(backend, disp.id, config);
+                                state.recording = Some(handle);
                                 if let Some(ui) = ui_weak.upgrade() {
-                                    ui.set_status_text(slint::SharedString::from(format!(
-                                        "Display error: {e}"
-                                    )));
+                                    ui.set_is_recording(true);
+                                    ui.set_status_text(slint::SharedString::from("Recording…"));
                                 }
                             }
                         }
-                    }
+                        Err(e) => {
+                            if let Some(ui) = ui_weak.upgrade() {
+                                ui.set_status_text(slint::SharedString::from(format!(
+                                    "Display error: {e}"
+                                )));
+                            }
+                        }
+                    },
                     Err(e) => {
                         if let Some(ui) = ui_weak.upgrade() {
                             ui.set_status_text(slint::SharedString::from(format!(
@@ -565,11 +550,7 @@ pub fn bind_video_mode(
                     ui.set_is_playing(true);
                     let vs_clone = vs.clone();
                     let ui_w = ui.as_weak();
-                    let fps = state
-                        .video_session
-                        .as_ref()
-                        .map(|v| v.fps)
-                        .unwrap_or(10);
+                    let fps = state.video_session.as_ref().map(|v| v.fps).unwrap_or(10);
                     let dt = 1.0 / fps as f64;
 
                     let timer = slint::Timer::default();
@@ -705,7 +686,7 @@ pub fn bind_video_mode(
                 ui.set_is_playing(false);
                 ui.set_is_recording(false);
                 let s = is.lock();
-                refresh_canvas(&ui, &*s);
+                refresh_canvas(&ui, &s);
                 ui.set_status_text(slint::SharedString::from("Returned to image mode"));
             }
         });

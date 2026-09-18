@@ -1,8 +1,6 @@
 //! Screen recording capture thread — owns `RecordingConfig`, downscale, and `RecordingHandle`.
 
-use camerashot_media::{
-    AudioConfig, RecordingSession, ScreenRecorder, VideoEncoderConfig,
-};
+use camerashot_media::{AudioConfig, RecordingSession, ScreenRecorder, VideoEncoderConfig};
 use camerashot_platform::traits::CaptureBackend;
 use image::imageops::FilterType;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -84,7 +82,9 @@ impl RecordingHandle {
                 hardware_accelerated: false,
             };
             let mut recorder = ScreenRecorder::new(video_config, AudioConfig::default());
-            recorder.start().map_err(|e| format!("Recorder start: {e}"))?;
+            recorder
+                .start()
+                .map_err(|e| format!("Recorder start: {e}"))?;
 
             let frame_interval = Duration::from_secs_f64(1.0 / config.fps as f64);
             let max_duration = Duration::from_secs(config.max_secs as u64);
@@ -104,8 +104,12 @@ impl RecordingHandle {
                 match backend.capture_display(display_id) {
                     Ok(fb) => {
                         let rgba = fb.to_rgba8();
-                        let (data, w, h) =
-                            downscale_rgba(rgba, fb.width as u32, fb.height as u32, config.max_width);
+                        let (data, w, h) = downscale_rgba(
+                            rgba,
+                            fb.width as u32,
+                            fb.height as u32,
+                            config.max_width,
+                        );
                         if let Err(e) = recorder.push_video_frame(data, w, h) {
                             tracing::warn!("Frame push error: {e}");
                         }
@@ -122,9 +126,7 @@ impl RecordingHandle {
                 }
             }
 
-            recorder
-                .stop()
-                .map_err(|e| format!("Recorder stop: {e}"))
+            recorder.stop().map_err(|e| format!("Recorder stop: {e}"))
         });
 
         Self {
@@ -146,9 +148,7 @@ impl RecordingHandle {
 
     /// Check if the recording thread has finished.
     pub fn is_finished(&self) -> bool {
-        self.join
-            .as_ref()
-            .map_or(true, |j| j.is_finished())
+        self.join.as_ref().is_none_or(|j| j.is_finished())
     }
 
     /// Stop recording and join the capture thread, returning the `RecordingSession`.

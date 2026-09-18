@@ -20,10 +20,7 @@ pub fn redactions_from_blocks(
     tool: AnnotationTool,
     padding: f64,
 ) -> (Uuid, Vec<Annotation>) {
-    let pairs: Vec<(&str, Rect)> = blocks
-        .iter()
-        .map(|b| (b.text.as_str(), b.bounds))
-        .collect();
+    let pairs: Vec<(&str, Rect)> = blocks.iter().map(|b| (b.text.as_str(), b.bounds)).collect();
     redactor.build_redactions_for_blocks(&pairs, tool, padding)
 }
 
@@ -50,11 +47,20 @@ pub fn detect_redactions(
 pub fn blocks_to_text(blocks: &[OcrBlock]) -> String {
     let mut sorted: Vec<&OcrBlock> = blocks.iter().collect();
     sorted.sort_by(|a, b| {
-        let y_cmp = a.bounds.origin.y.partial_cmp(&b.bounds.origin.y).unwrap_or(std::cmp::Ordering::Equal);
+        let y_cmp = a
+            .bounds
+            .origin
+            .y
+            .partial_cmp(&b.bounds.origin.y)
+            .unwrap_or(std::cmp::Ordering::Equal);
         if y_cmp != std::cmp::Ordering::Equal {
             return y_cmp;
         }
-        a.bounds.origin.x.partial_cmp(&b.bounds.origin.x).unwrap_or(std::cmp::Ordering::Equal)
+        a.bounds
+            .origin
+            .x
+            .partial_cmp(&b.bounds.origin.x)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
     sorted
         .iter()

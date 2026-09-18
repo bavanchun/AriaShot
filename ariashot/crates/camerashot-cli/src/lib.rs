@@ -6,7 +6,9 @@
 use camerashot_core::annotation::AnnotationTool;
 use camerashot_core::geometry::Rect;
 use camerashot_core::renderer::AnnotationRenderer;
-use camerashot_ocr::{blocks_to_text, mask_pii_in_text, redactions_from_blocks, OcrEngine, PiiDetector, PiiRedactor};
+use camerashot_ocr::{
+    blocks_to_text, mask_pii_in_text, redactions_from_blocks, OcrEngine, PiiDetector, PiiRedactor,
+};
 use camerashot_platform::clipboard;
 use camerashot_platform::traits::{CaptureBackend, FrameBuffer};
 use chrono::Local;
@@ -101,12 +103,27 @@ impl RedactStyle {
 pub fn parse_crop(s: &str) -> Result<Rect, String> {
     let parts: Vec<&str> = s.split(',').collect();
     if parts.len() != 4 {
-        return Err(format!("expected 4 comma-separated values X,Y,W,H, got {}", parts.len()));
+        return Err(format!(
+            "expected 4 comma-separated values X,Y,W,H, got {}",
+            parts.len()
+        ));
     }
-    let x: f64 = parts[0].trim().parse().map_err(|_| format!("invalid X value: '{}'", parts[0].trim()))?;
-    let y: f64 = parts[1].trim().parse().map_err(|_| format!("invalid Y value: '{}'", parts[1].trim()))?;
-    let w: f64 = parts[2].trim().parse().map_err(|_| format!("invalid W value: '{}'", parts[2].trim()))?;
-    let h: f64 = parts[3].trim().parse().map_err(|_| format!("invalid H value: '{}'", parts[3].trim()))?;
+    let x: f64 = parts[0]
+        .trim()
+        .parse()
+        .map_err(|_| format!("invalid X value: '{}'", parts[0].trim()))?;
+    let y: f64 = parts[1]
+        .trim()
+        .parse()
+        .map_err(|_| format!("invalid Y value: '{}'", parts[1].trim()))?;
+    let w: f64 = parts[2]
+        .trim()
+        .parse()
+        .map_err(|_| format!("invalid W value: '{}'", parts[2].trim()))?;
+    let h: f64 = parts[3]
+        .trim()
+        .parse()
+        .map_err(|_| format!("invalid H value: '{}'", parts[3].trim()))?;
 
     if w <= 0.0 {
         return Err(format!("width must be > 0, got {w}"));
@@ -156,9 +173,11 @@ fn framebuffer_to_pixmap(fb: &FrameBuffer) -> Result<Pixmap, CliError> {
     let rgba = fb.to_rgba8();
     let w = fb.width as u32;
     let h = fb.height as u32;
-    Pixmap::from_vec(rgba, tiny_skia::IntSize::from_wh(w, h).ok_or_else(|| {
-        CliError::Runtime(format!("invalid image dimensions: {w}x{h}"))
-    })?)
+    Pixmap::from_vec(
+        rgba,
+        tiny_skia::IntSize::from_wh(w, h)
+            .ok_or_else(|| CliError::Runtime(format!("invalid image dimensions: {w}x{h}")))?,
+    )
     .ok_or_else(|| CliError::Runtime("failed to create Pixmap from RGBA data".to_string()))
 }
 
@@ -175,8 +194,9 @@ fn save_pixmap(pixmap: &Pixmap, path: &Path) -> Result<(), CliError> {
     // Ensure parent directory exists
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() && !parent.exists() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| CliError::Runtime(format!("cannot create directory {:?}: {e}", parent)))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                CliError::Runtime(format!("cannot create directory {:?}: {e}", parent))
+            })?;
         }
     }
 
@@ -255,7 +275,9 @@ fn run_inner(
 
     // 3. Redact PII on the image (fail-closed: if we reach here OCR succeeded)
     let redaction_count = if cli.redact {
-        let blocks = ocr_blocks.as_ref().expect("OCR blocks must exist for redact");
+        let blocks = ocr_blocks
+            .as_ref()
+            .expect("OCR blocks must exist for redact");
         let redactor = PiiRedactor::new();
         let tool = cli.redact_style.to_annotation_tool();
         let (_batch_id, annotations) = redactions_from_blocks(&redactor, blocks, tool, 2.0);
@@ -327,7 +349,10 @@ fn capture(cli: &Cli, backend: &dyn CaptureBackend) -> Result<FrameBuffer, CliEr
                 .enumerate_displays()
                 .map_err(|e| CliError::Runtime(format!("enumerate_displays: {e}")))?;
             if !displays.iter().any(|d| d.id == id) {
-                let ids: Vec<String> = displays.iter().map(|d| format!("{} ({})", d.id, d.name)).collect();
+                let ids: Vec<String> = displays
+                    .iter()
+                    .map(|d| format!("{} ({})", d.id, d.name))
+                    .collect();
                 return Err(CliError::Runtime(format!(
                     "display {id} not found. Available: {}",
                     ids.join(", ")

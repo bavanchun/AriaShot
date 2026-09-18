@@ -27,9 +27,9 @@ pub fn moving_average_smooth(pts: &[Point], window_size: usize) -> Vec<Point> {
         let lo = i.saturating_sub(window_size - 1);
         let mut avg_x = 0.0;
         let mut avg_y = 0.0;
-        for j in lo..=i {
-            avg_x += pts[j].x;
-            avg_y += pts[j].y;
+        for pt in &pts[lo..=i] {
+            avg_x += pt.x;
+            avg_y += pt.y;
         }
         let n = (i - lo + 1) as f64;
         result.push(Point::new(avg_x / n, avg_y / n));
@@ -46,8 +46,8 @@ pub fn moving_average_smooth_values(vals: &[f64], window_size: usize) -> Vec<f64
     for i in 0..vals.len() {
         let lo = i.saturating_sub(window_size - 1);
         let mut sum = 0.0;
-        for j in lo..=i {
-            sum += vals[j];
+        for &val in &vals[lo..=i] {
+            sum += val;
         }
         let n = (i - lo + 1) as f64;
         result.push(sum / n);
@@ -121,11 +121,7 @@ pub fn smooth_pencil_stroke(
     // Single or double click tap: synthesize 3 close points so line cap creates a round dot
     if raw_points.len() < 3 {
         let p = raw_points[0];
-        let synthetic_points = vec![
-            p,
-            Point::new(p.x + 0.5, p.y),
-            Point::new(p.x + 0.5, p.y),
-        ];
+        let synthetic_points = vec![p, Point::new(p.x + 0.5, p.y), Point::new(p.x + 0.5, p.y)];
         let synthetic_pressures = raw_pressures.map(|pr| {
             let p_val = pr.first().copied().unwrap_or(1.0);
             vec![p_val, p_val, p_val]

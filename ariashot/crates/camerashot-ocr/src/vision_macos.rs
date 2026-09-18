@@ -8,6 +8,7 @@ pub struct OcrBlock {
     pub bounds: Rect,
 }
 
+#[derive(Default)]
 pub struct AppleVisionOcr;
 
 impl AppleVisionOcr {
@@ -98,7 +99,7 @@ fn recognize_text_vision(
 
         for obs in observations.iter() {
             let candidates = obs.topCandidates(1);
-            if candidates.len() == 0 {
+            if candidates.is_empty() {
                 continue;
             }
             let candidate = candidates.objectAtIndex(0);
@@ -121,7 +122,7 @@ fn recognize_text_vision(
 
             blocks.push(OcrBlock {
                 text,
-                confidence: confidence as f32,
+                confidence,
                 bounds: Rect::new(px_x, px_y, px_w, px_h),
             });
         }

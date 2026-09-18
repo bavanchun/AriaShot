@@ -43,7 +43,9 @@ pub struct SelectionController {
 impl Default for SelectionController {
     fn default() -> Self {
         Self {
-            state: OverlayState::Idle { cursor: Point::ZERO },
+            state: OverlayState::Idle {
+                cursor: Point::ZERO,
+            },
             snap_radius_points: 8.0,
         }
     }
@@ -71,14 +73,18 @@ impl SelectionController {
                     // Test vertical boundary snapping along the current selection Y span
                     let y_min = start.y.min(pt.y);
                     let y_max = start.y.max(pt.y);
-                    if let Some(hit_x) = index.nearest_vertical(pt.x, y_min, y_max, self.snap_radius_points) {
+                    if let Some(hit_x) =
+                        index.nearest_vertical(pt.x, y_min, y_max, self.snap_radius_points)
+                    {
                         snapped.x = hit_x.view_position;
                     }
 
                     // Test horizontal boundary snapping along the current selection X span
                     let x_min = start.x.min(pt.x);
                     let x_max = start.x.max(pt.x);
-                    if let Some(hit_y) = index.nearest_horizontal(pt.y, x_min, x_max, self.snap_radius_points) {
+                    if let Some(hit_y) =
+                        index.nearest_horizontal(pt.y, x_min, x_max, self.snap_radius_points)
+                    {
                         snapped.y = hit_y.view_position;
                     }
                 }
@@ -98,15 +104,13 @@ impl SelectionController {
                     snapped_current: pt,
                 };
             }
-            OverlayState::Selected { rect } => {
-                if !rect.contains(pt) {
-                    // Click outside selection clears and restarts
-                    self.state = OverlayState::Selecting {
-                        start: pt,
-                        current: pt,
-                        snapped_current: pt,
-                    };
-                }
+            OverlayState::Selected { rect } if !rect.contains(pt) => {
+                // Click outside selection clears and restarts
+                self.state = OverlayState::Selecting {
+                    start: pt,
+                    current: pt,
+                    snapped_current: pt,
+                };
             }
             _ => {}
         }

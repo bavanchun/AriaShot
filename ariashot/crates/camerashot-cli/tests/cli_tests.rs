@@ -6,7 +6,9 @@
 
 use camerashot_cli::{parse_crop, Cli, RedactStyle, EXIT_OK};
 use camerashot_core::geometry::Rect;
-use camerashot_platform::traits::{CaptureBackend, FrameBuffer, PlatformDisplay, PlatformError, PixelFormat};
+use camerashot_platform::traits::{
+    CaptureBackend, FrameBuffer, PixelFormat, PlatformDisplay, PlatformError,
+};
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -26,8 +28,7 @@ struct MockBackend {
 
 impl MockBackend {
     fn new() -> Self {
-        let img = image::open(fixture_path())
-            .expect("cannot open pii-sample.png fixture");
+        let img = image::open(fixture_path()).expect("cannot open pii-sample.png fixture");
         let rgba = img.to_rgba8();
         let (w, h) = rgba.dimensions();
         let raw = rgba.into_raw();
@@ -157,13 +158,8 @@ fn run_full_output_file() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("capture.png");
 
-    let cli = Cli::try_parse_from([
-        "ariashot",
-        "--full",
-        "-o",
-        out_path.to_str().unwrap(),
-    ])
-    .unwrap();
+    let cli =
+        Cli::try_parse_from(["ariashot", "--full", "-o", out_path.to_str().unwrap()]).unwrap();
 
     let backend = MockBackend::new();
     let mut stdout = Vec::new();
@@ -173,11 +169,17 @@ fn run_full_output_file() {
 
     assert_eq!(code, EXIT_OK, "exit code should be 0");
     assert!(out_path.exists(), "output file should exist");
-    assert!(out_path.metadata().unwrap().len() > 0, "output file should not be empty");
+    assert!(
+        out_path.metadata().unwrap().len() > 0,
+        "output file should not be empty"
+    );
     assert!(stdout.is_empty(), "stdout should be empty (no --ocr)");
 
     let err_str = String::from_utf8_lossy(&stderr);
-    assert!(err_str.contains("saved:"), "stderr should mention saved path");
+    assert!(
+        err_str.contains("saved:"),
+        "stderr should mention saved path"
+    );
 }
 
 #[test]
@@ -185,13 +187,8 @@ fn run_full_creates_parent_dirs() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("deep/nested/dir/capture.png");
 
-    let cli = Cli::try_parse_from([
-        "ariashot",
-        "--full",
-        "-o",
-        out_path.to_str().unwrap(),
-    ])
-    .unwrap();
+    let cli =
+        Cli::try_parse_from(["ariashot", "--full", "-o", out_path.to_str().unwrap()]).unwrap();
 
     let backend = MockBackend::new();
     let mut stdout = Vec::new();
@@ -208,13 +205,8 @@ fn run_full_output_dimensions_match_fixture() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("out.png");
 
-    let cli = Cli::try_parse_from([
-        "ariashot",
-        "--full",
-        "-o",
-        out_path.to_str().unwrap(),
-    ])
-    .unwrap();
+    let cli =
+        Cli::try_parse_from(["ariashot", "--full", "-o", out_path.to_str().unwrap()]).unwrap();
 
     let backend = MockBackend::new();
     let expected_w = backend.fb.width as u32;
@@ -311,7 +303,10 @@ mod macos_ocr_tests {
         );
 
         let err_str = String::from_utf8_lossy(&stderr);
-        assert!(err_str.contains("redacted"), "stderr should mention redaction count");
+        assert!(
+            err_str.contains("redacted"),
+            "stderr should mention redaction count"
+        );
     }
 
     #[test]
@@ -337,7 +332,10 @@ mod macos_ocr_tests {
         assert_eq!(code, EXIT_OK);
         assert!(out_path.exists());
         // No --ocr, so stdout should be empty
-        assert!(stdout.is_empty(), "stdout should be empty when --ocr is not set");
+        assert!(
+            stdout.is_empty(),
+            "stdout should be empty when --ocr is not set"
+        );
     }
 }
 
@@ -387,13 +385,8 @@ fn run_full_output_jpg() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("out.jpg");
 
-    let cli = Cli::try_parse_from([
-        "ariashot",
-        "--full",
-        "-o",
-        out_path.to_str().unwrap(),
-    ])
-    .unwrap();
+    let cli =
+        Cli::try_parse_from(["ariashot", "--full", "-o", out_path.to_str().unwrap()]).unwrap();
 
     let backend = MockBackend::new();
     let mut stdout = Vec::new();
@@ -411,13 +404,8 @@ fn run_full_output_webp() {
     let tmp = tempfile::tempdir().unwrap();
     let out_path = tmp.path().join("out.webp");
 
-    let cli = Cli::try_parse_from([
-        "ariashot",
-        "--full",
-        "-o",
-        out_path.to_str().unwrap(),
-    ])
-    .unwrap();
+    let cli =
+        Cli::try_parse_from(["ariashot", "--full", "-o", out_path.to_str().unwrap()]).unwrap();
 
     let backend = MockBackend::new();
     let mut stdout = Vec::new();
@@ -448,7 +436,10 @@ fn run_full_default_output_writes_file() {
 
     assert_eq!(code, EXIT_OK);
     let err_str = String::from_utf8_lossy(&stderr);
-    assert!(err_str.contains("saved:"), "should report saved file in stderr");
+    assert!(
+        err_str.contains("saved:"),
+        "should report saved file in stderr"
+    );
 
     // Clean up the default file
     let default_file = err_str
@@ -469,7 +460,13 @@ fn run_full_default_output_writes_file() {
 fn redact_style_to_annotation_tool() {
     use camerashot_core::annotation::AnnotationTool;
 
-    assert_eq!(RedactStyle::Pixelate.to_annotation_tool(), AnnotationTool::Pixelate);
+    assert_eq!(
+        RedactStyle::Pixelate.to_annotation_tool(),
+        AnnotationTool::Pixelate
+    );
     assert_eq!(RedactStyle::Blur.to_annotation_tool(), AnnotationTool::Blur);
-    assert_eq!(RedactStyle::Fill.to_annotation_tool(), AnnotationTool::FilledRectangle);
+    assert_eq!(
+        RedactStyle::Fill.to_annotation_tool(),
+        AnnotationTool::FilledRectangle
+    );
 }

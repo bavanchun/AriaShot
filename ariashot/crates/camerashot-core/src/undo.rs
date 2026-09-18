@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 /// Atomic action stored in the undo/redo history.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)]
 pub enum UndoAction {
     /// An annotation was added to the canvas.
     Add { annotation: Annotation },

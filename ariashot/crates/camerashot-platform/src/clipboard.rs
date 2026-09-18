@@ -16,8 +16,8 @@ use std::borrow::Cow;
 /// On Linux this function blocks until another application reads from the clipboard,
 /// because Linux clipboard ownership is cooperative.
 pub fn copy_rgba_image(width: u32, height: u32, rgba: &[u8]) -> Result<(), PlatformError> {
-    let mut clipboard = Clipboard::new()
-        .map_err(|e| PlatformError::CaptureFailed(format!("clipboard: {e}")))?;
+    let mut clipboard =
+        Clipboard::new().map_err(|e| PlatformError::CaptureFailed(format!("clipboard: {e}")))?;
 
     let img = ImageData {
         width: width as usize,
@@ -34,8 +34,8 @@ pub fn copy_rgba_image(width: u32, height: u32, rgba: &[u8]) -> Result<(), Platf
 
 /// Copy a text string to the system clipboard.
 pub fn copy_text(text: &str) -> Result<(), PlatformError> {
-    let mut clipboard = Clipboard::new()
-        .map_err(|e| PlatformError::CaptureFailed(format!("clipboard: {e}")))?;
+    let mut clipboard =
+        Clipboard::new().map_err(|e| PlatformError::CaptureFailed(format!("clipboard: {e}")))?;
 
     clipboard
         .set_text(text)

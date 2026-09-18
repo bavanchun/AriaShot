@@ -2,11 +2,11 @@
 //!
 //! Wraps a `RecordingSession` with a `VideoTimeline` for non-destructive edits.
 
-use camerashot_core::geometry::{Point, Rect};
 use crate::compositor::TimelineCompositor;
 use crate::timeline_ctrl::{
     CensorStyle, VideoCensorSegment, VideoCutSegment, VideoTimeline, VideoZoomSegment,
 };
+use camerashot_core::geometry::{Point, Rect};
 use camerashot_media::{MediaError, RecordedVideoFrame, RecordingSession};
 
 /// Holds the state for a video editing session.
@@ -72,10 +72,8 @@ impl VideoSession {
         let idx = self.frame_index_at(t)?;
         let frame = &self.session.frames[idx];
         // Composite through the timeline (cuts, zooms, censors)
-        let composited = TimelineCompositor::composite_frames(
-            std::slice::from_ref(frame),
-            &self.timeline,
-        );
+        let composited =
+            TimelineCompositor::composite_frames(std::slice::from_ref(frame), &self.timeline);
         composited.into_iter().next()
     }
 
@@ -125,12 +123,7 @@ impl VideoSession {
         let cy = self.focus.y;
         let w = 0.20;
         let h = 0.12;
-        let rect = Rect::new(
-            (cx - w / 2.0).max(0.0),
-            (cy - h / 2.0).max(0.0),
-            w,
-            h,
-        );
+        let rect = Rect::new((cx - w / 2.0).max(0.0), (cy - h / 2.0).max(0.0), w, h);
         self.timeline
             .censors
             .push(VideoCensorSegment::new(t, end, rect, CensorStyle::Pixelate));

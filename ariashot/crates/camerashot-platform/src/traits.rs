@@ -40,7 +40,13 @@ pub struct FrameBuffer {
 }
 
 impl FrameBuffer {
-    pub fn new(width: usize, height: usize, stride: usize, format: PixelFormat, data: Vec<u8>) -> Self {
+    pub fn new(
+        width: usize,
+        height: usize,
+        stride: usize,
+        format: PixelFormat,
+        data: Vec<u8>,
+    ) -> Self {
         Self {
             width,
             height,

@@ -1,7 +1,7 @@
 use camerashot_core::{
-    chaikin_smooth, interpolate_to_count, moving_average_smooth, smooth_pencil_stroke,
-    Annotation, AnnotationTool, BoundarySnapIndex, NumberFormat, PencilSmoothMode, Point, Rect,
-    UndoAction, UndoStack,
+    chaikin_smooth, interpolate_to_count, moving_average_smooth, smooth_pencil_stroke, Annotation,
+    AnnotationTool, BoundarySnapIndex, NumberFormat, PencilSmoothMode, Point, Rect, UndoAction,
+    UndoStack,
 };
 use uuid::Uuid;
 
@@ -39,7 +39,7 @@ fn test_boundary_snap_index_vertical_and_horizontal() {
     for y in 0..height {
         for x in 40..=60 {
             let idx = (y * width + x) * 4;
-            pixels[idx] = 0;     // R
+            pixels[idx] = 0; // R
             pixels[idx + 1] = 0; // G
             pixels[idx + 2] = 0; // B
             pixels[idx + 3] = 255;
@@ -47,7 +47,8 @@ fn test_boundary_snap_index_vertical_and_horizontal() {
     }
 
     let draw_rect = Rect::new(0.0, 0.0, 100.0, 100.0);
-    let index = BoundarySnapIndex::build(width, height, &pixels, draw_rect).expect("Failed to build index");
+    let index =
+        BoundarySnapIndex::build(width, height, &pixels, draw_rect).expect("Failed to build index");
 
     // Boundary 40 is between pixel 39 (white, 255) and pixel 40 (black, 0). Contrast = ~441.67 > 28.0.
     // Query near view_x = 42.0 with radius = 5.0 points along y in [10.0, 90.0].
@@ -73,9 +74,13 @@ fn test_boundary_snap_index_vertical_and_horizontal() {
             h_pixels[idx + 3] = 255;
         }
     }
-    let h_index = BoundarySnapIndex::build(width, height, &h_pixels, draw_rect).expect("Failed to build index");
+    let h_index = BoundarySnapIndex::build(width, height, &h_pixels, draw_rect)
+        .expect("Failed to build index");
     let hit_h = h_index.nearest_horizontal(48.0, 10.0, 90.0, 5.0);
-    assert!(hit_h.is_some(), "Expected horizontal snap hit at boundary 50");
+    assert!(
+        hit_h.is_some(),
+        "Expected horizontal snap hit at boundary 50"
+    );
     assert_eq!(hit_h.unwrap().pixel_boundary, 50);
 }
 
@@ -137,12 +142,16 @@ fn test_undo_stack_operations() {
 
     // 1. Add ann1
     annotations.push(ann1.clone());
-    stack.push(UndoAction::Add { annotation: ann1.clone() });
+    stack.push(UndoAction::Add {
+        annotation: ann1.clone(),
+    });
     assert_eq!(annotations.len(), 1);
 
     // 2. Add ann2
     annotations.push(ann2.clone());
-    stack.push(UndoAction::Add { annotation: ann2.clone() });
+    stack.push(UndoAction::Add {
+        annotation: ann2.clone(),
+    });
     assert_eq!(annotations.len(), 2);
 
     // 3. Undo add ann2
@@ -178,8 +187,12 @@ fn test_undo_stack_operations() {
     stack.push(UndoAction::Batch {
         group_id: Some(group_id),
         actions: vec![
-            UndoAction::Add { annotation: pii1.clone() },
-            UndoAction::Add { annotation: pii2.clone() },
+            UndoAction::Add {
+                annotation: pii1.clone(),
+            },
+            UndoAction::Add {
+                annotation: pii2.clone(),
+            },
         ],
     });
     assert_eq!(annotations.len(), 4);
@@ -219,5 +232,8 @@ fn test_boundary_snap_index_4k_performance() {
     let duration = start.elapsed();
 
     assert!(index.is_some());
-    println!("4K UHD (3840x2160) BoundarySnapIndex build time: {:?}", duration);
+    println!(
+        "4K UHD (3840x2160) BoundarySnapIndex build time: {:?}",
+        duration
+    );
 }

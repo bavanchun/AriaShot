@@ -101,10 +101,7 @@ impl VideoZoomSegment {
     /// Clamp normalized center (0..1) so the zoomed window stays inside video frame.
     pub fn clamped_center(c: Point, zoom: f64) -> Point {
         let half = 1.0 / (2.0 * zoom.max(1.0001));
-        Point::new(
-            c.x.clamp(half, 1.0 - half),
-            c.y.clamp(half, 1.0 - half),
-        )
+        Point::new(c.x.clamp(half, 1.0 - half), c.y.clamp(half, 1.0 - half))
     }
 
     /// Calculate crop rectangle in video pixel coordinates for given frame dimensions.
@@ -314,7 +311,9 @@ impl VideoTimeline {
         if t < self.trim_start || t > self.trim_end {
             return true;
         }
-        self.cuts.iter().any(|c| t >= c.start_time && t <= c.end_time)
+        self.cuts
+            .iter()
+            .any(|c| t >= c.start_time && t <= c.end_time)
     }
 
     /// Retrieve the currently active zoom segment at time `t`, if any.
@@ -350,7 +349,12 @@ impl VideoTimeline {
             .cuts
             .iter()
             .filter(|c| c.end_time > c.start_time)
-            .map(|c| (c.start_time.max(self.trim_start), c.end_time.min(self.trim_end)))
+            .map(|c| {
+                (
+                    c.start_time.max(self.trim_start),
+                    c.end_time.min(self.trim_end),
+                )
+            })
             .filter(|(s, e)| s < e)
             .collect();
 
@@ -391,7 +395,11 @@ impl VideoTimeline {
 
         for (mut start, end) in kept {
             while start < end {
-                if let Some(speed_seg) = self.speeds.iter().find(|s| s.start_time < end && s.end_time > start) {
+                if let Some(speed_seg) = self
+                    .speeds
+                    .iter()
+                    .find(|s| s.start_time < end && s.end_time > start)
+                {
                     let s_start = start.max(speed_seg.start_time);
                     let s_end = end.min(speed_seg.end_time);
 

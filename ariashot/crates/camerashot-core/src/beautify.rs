@@ -7,7 +7,7 @@ use tiny_skia::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum BeautifyMode {
     #[default]
-    Window = 0,  // macOS window chrome with traffic lights
+    Window = 0, // macOS window chrome with traffic lights
     Rounded = 1, // Rounded corners only, no title bar
 }
 
@@ -112,7 +112,11 @@ pub struct BeautifyRenderer;
 
 impl BeautifyRenderer {
     pub fn render(source: &Pixmap, config: &BeautifyConfig) -> Option<Pixmap> {
-        let title_bar_height = if config.mode == BeautifyMode::Window { 36.0f32 } else { 0.0f32 };
+        let title_bar_height = if config.mode == BeautifyMode::Window {
+            36.0f32
+        } else {
+            0.0f32
+        };
         let content_w = source.width() as f32;
         let content_h = source.height() as f32;
 
@@ -141,12 +145,21 @@ impl BeautifyRenderer {
             Transform::identity(),
         )?;
 
-        let mut bg_paint = Paint::default();
-        bg_paint.shader = bg_shader;
-        bg_paint.anti_alias = true;
+        let bg_paint = Paint {
+            shader: bg_shader,
+            anti_alias: true,
+            ..Paint::default()
+        };
 
-        let bg_path = Self::rounded_rect_path(0.0, 0.0, total_w as f32, total_h as f32, config.bg_radius);
-        canvas.fill_path(&bg_path, &bg_paint, FillRule::Winding, Transform::identity(), None);
+        let bg_path =
+            Self::rounded_rect_path(0.0, 0.0, total_w as f32, total_h as f32, config.bg_radius);
+        canvas.fill_path(
+            &bg_path,
+            &bg_paint,
+            FillRule::Winding,
+            Transform::identity(),
+            None,
+        );
 
         // 2. Window position
         let win_x = config.padding;
@@ -166,7 +179,13 @@ impl BeautifyRenderer {
                 win_h + 4.0,
                 config.corner_radius + 2.0,
             );
-            canvas.fill_path(&shadow_path, &shadow_paint, FillRule::Winding, Transform::identity(), None);
+            canvas.fill_path(
+                &shadow_path,
+                &shadow_paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
 
         // 4. Draw window base / title bar
@@ -175,8 +194,15 @@ impl BeautifyRenderer {
             let mut title_paint = Paint::default();
             title_paint.set_color_rgba8(35, 35, 38, 255);
             title_paint.anti_alias = true;
-            let title_path = Self::rounded_rect_path(win_x, win_y, win_w, win_h, config.corner_radius);
-            canvas.fill_path(&title_path, &title_paint, FillRule::Winding, Transform::identity(), None);
+            let title_path =
+                Self::rounded_rect_path(win_x, win_y, win_w, win_h, config.corner_radius);
+            canvas.fill_path(
+                &title_path,
+                &title_paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
 
             // Traffic light buttons
             let button_y = win_y + title_bar_height / 2.0;
@@ -185,11 +211,29 @@ impl BeautifyRenderer {
             let spacing = 18.0;
 
             // Close (Red #FF5F56)
-            Self::draw_circle(&mut canvas, start_x, button_y, button_radius, Color::from_rgba8(255, 95, 86, 255));
+            Self::draw_circle(
+                &mut canvas,
+                start_x,
+                button_y,
+                button_radius,
+                Color::from_rgba8(255, 95, 86, 255),
+            );
             // Minimize (Yellow #FFBD2E)
-            Self::draw_circle(&mut canvas, start_x + spacing, button_y, button_radius, Color::from_rgba8(255, 189, 46, 255));
+            Self::draw_circle(
+                &mut canvas,
+                start_x + spacing,
+                button_y,
+                button_radius,
+                Color::from_rgba8(255, 189, 46, 255),
+            );
             // Maximize (Green #27C93F)
-            Self::draw_circle(&mut canvas, start_x + spacing * 2.0, button_y, button_radius, Color::from_rgba8(39, 201, 63, 255));
+            Self::draw_circle(
+                &mut canvas,
+                start_x + spacing * 2.0,
+                button_y,
+                button_radius,
+                Color::from_rgba8(39, 201, 63, 255),
+            );
         }
 
         // 5. Blit screenshot source image into window content area
@@ -236,7 +280,13 @@ impl BeautifyRenderer {
             let mut paint = Paint::default();
             paint.set_color(color);
             paint.anti_alias = true;
-            canvas.fill_path(&path, &paint, FillRule::Winding, Transform::identity(), None);
+            canvas.fill_path(
+                &path,
+                &paint,
+                FillRule::Winding,
+                Transform::identity(),
+                None,
+            );
         }
     }
 }
