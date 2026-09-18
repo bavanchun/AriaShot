@@ -7,7 +7,7 @@
 //! Otherwise, captures the primary display via `create_default_backend`.
 
 use camerashot_editor::app::image_session::ImageSession;
-use camerashot_editor::app::{bind_image_mode, MainEditorWindow};
+use camerashot_editor::app::{bind_image_mode, bind_video_mode, MainEditorWindow, VideoState};
 use parking_lot::Mutex;
 use slint::ComponentHandle;
 use std::path::Path;
@@ -43,9 +43,11 @@ fn main() {
     };
 
     let session = Arc::new(Mutex::new(session));
+    let video_state = Arc::new(Mutex::new(VideoState::default()));
     let ui = MainEditorWindow::new().expect("Failed to create editor window");
 
-    bind_image_mode(&ui, session);
+    bind_image_mode(&ui, session.clone(), video_state.clone());
+    bind_video_mode(&ui, video_state, session);
 
     ui.run().expect("Slint event loop failed");
 }

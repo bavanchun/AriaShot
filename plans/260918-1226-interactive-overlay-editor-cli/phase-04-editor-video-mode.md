@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: "Slint Editor — Video Mode & Screen Recording"
-status: todo
+status: done
 priority: P1
 effort: "1.5d"
 dependencies: [3]
@@ -82,12 +82,12 @@ VideoSession { session: RecordingSession, timeline: VideoTimeline, current_time,
 
 ## Todo
 
-- [ ] RecordingConfig + downscale + RecordingHandle (thread capture)
-- [ ] VideoSession (frame lookup, playback skip cut, add cut/zoom/censor, export GIF)
-- [ ] Tests video_session_tests
-- [ ] UI: Record/Stop, Exit video, forward timeline props/callbacks, click focus
-- [ ] Playback timer + seek
-- [ ] Export GIF + copy frame ở video mode
+- [x] RecordingConfig + downscale + RecordingHandle (thread capture)
+- [x] VideoSession (frame lookup, playback skip cut, add cut/zoom/censor, export GIF)
+- [x] Tests video_session_tests
+- [x] UI: Record/Stop, Exit video, forward timeline props/callbacks, click focus
+- [x] Playback timer + seek
+- [x] Export GIF + copy frame ở video mode
 - [ ] Manual E2E
 
 ## Success Criteria

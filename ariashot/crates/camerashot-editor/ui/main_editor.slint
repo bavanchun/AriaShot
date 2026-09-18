@@ -36,6 +36,25 @@ export component MainEditorWindow inherits Window {
     callback zoom-fit();
     callback zoom-actual();
 
+    // --- Phase 4 video mode properties ---
+    in-out property <float> current-time: 0;
+    in property <float> total-duration: 0;
+    in property <bool> is-playing: false;
+    in property <bool> is-recording: false;
+    in property <int> cut-count: 0;
+    in property <int> zoom-count: 0;
+    in property <int> censor-count: 0;
+
+    // --- Phase 4 video mode callbacks ---
+    callback toggle-record();
+    callback toggle-playback();
+    callback seek(float);
+    callback add-cut();
+    callback add-zoom();
+    callback add-censor();
+    callback exit-video();
+    callback video-clicked(float, float);
+
     // Keyboard shortcut handler
     FocusScope {
         key-pressed(event) => {
@@ -234,8 +253,8 @@ export component MainEditorWindow inherits Window {
                         background: #3a3a48;
                     }
 
-                    // --- Actions ---
-                    Rectangle {
+                    // --- Image-mode-only actions ---
+                    if !root.is-video-mode && !root.is-recording: Rectangle {
                         width: 110px;
                         height: 28px;
                         background: root.busy ? #993a35 : #ff5f56;
@@ -253,7 +272,7 @@ export component MainEditorWindow inherits Window {
                         }
                     }
 
-                    Rectangle {
+                    if !root.is-video-mode && !root.is-recording: Rectangle {
                         width: 70px;
                         height: 28px;
                         background: root.busy ? #333340 : #4a4a5a;
@@ -268,6 +287,102 @@ export component MainEditorWindow inherits Window {
                             enabled: !root.busy;
                             clicked => { root.perform-ocr(); }
                         }
+                    }
+
+                    // --- Video-mode edit buttons ---
+                    if root.is-video-mode: Rectangle {
+                        width: 52px;
+                        height: 28px;
+                        background: root.is-playing ? #ff5f56 : #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: root.is-playing ? "⏸" : "▶";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 700;
+                        }
+                        TouchArea {
+                            clicked => { root.toggle-playback(); }
+                        }
+                    }
+
+                    if root.is-video-mode: Rectangle {
+                        width: 60px;
+                        height: 28px;
+                        background: #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: @tr("Cut {}", root.cut-count);
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-size: 12px;
+                        }
+                        TouchArea {
+                            clicked => { root.add-cut(); }
+                        }
+                    }
+
+                    if root.is-video-mode: Rectangle {
+                        width: 72px;
+                        height: 28px;
+                        background: #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: @tr("Zoom {}", root.zoom-count);
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-size: 12px;
+                        }
+                        TouchArea {
+                            clicked => { root.add-zoom(); }
+                        }
+                    }
+
+                    if root.is-video-mode: Rectangle {
+                        width: 84px;
+                        height: 28px;
+                        background: #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: @tr("Censor {}", root.censor-count);
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-size: 12px;
+                        }
+                        TouchArea {
+                            clicked => { root.add-censor(); }
+                        }
+                    }
+
+                    // --- Record / Stop button ---
+                    if !root.is-video-mode: Rectangle {
+                        width: 80px;
+                        height: 28px;
+                        background: root.is-recording ? #ff5f56 : #e63946;
+                        border-radius: 4px;
+                        Text {
+                            text: root.is-recording ? "■ Stop" : "● Record";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-weight: 600;
+                            font-size: 12px;
+                        }
+                        TouchArea {
+                            enabled: !root.busy;
+                            clicked => { root.toggle-record(); }
+                        }
+                    }
+
+                    // --- Divider ---
+                    Rectangle {
+                        width: 1px;
+                        height: 20px;
+                        background: #3a3a48;
                     }
 
                     Rectangle {
@@ -294,7 +409,7 @@ export component MainEditorWindow inherits Window {
                         background: root.busy ? #2b6b38 : #39b54a;
                         border-radius: 4px;
                         Text {
-                            text: "Save";
+                            text: root.is-video-mode ? "Export" : "Save";
                             color: #ffffff;
                             horizontal-alignment: center;
                             vertical-alignment: center;
@@ -303,6 +418,24 @@ export component MainEditorWindow inherits Window {
                         TouchArea {
                             enabled: !root.busy;
                             clicked => { root.save-image(); }
+                        }
+                    }
+
+                    // --- Exit Video button ---
+                    if root.is-video-mode: Rectangle {
+                        width: 90px;
+                        height: 28px;
+                        background: #4a4a5a;
+                        border-radius: 4px;
+                        Text {
+                            text: "Exit video";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            font-size: 12px;
+                        }
+                        TouchArea {
+                            clicked => { root.exit-video(); }
                         }
                     }
                 }
@@ -324,6 +457,18 @@ export component MainEditorWindow inherits Window {
                             width: root.image-width * root.zoom-level;
                             height: root.image-height * root.zoom-level;
                             image-rendering: root.zoom-level >= 2.0 ? pixelated : smooth;
+                        }
+
+                        // Video-mode click: set focus point for zoom/censor placement
+                        if root.is-video-mode: TouchArea {
+                            width: root.image-width * root.zoom-level;
+                            height: root.image-height * root.zoom-level;
+                            clicked => {
+                                root.video-clicked(
+                                    self.mouse-x / 1px / root.zoom-level,
+                                    self.mouse-y / 1px / root.zoom-level
+                                );
+                            }
                         }
                     }
                 }
@@ -416,6 +561,17 @@ export component MainEditorWindow inherits Window {
             // ═══════════ Bottom timeline for video mode ═══════════
             if root.is-video-mode: VideoTimelineView {
                 height: 120px;
+                current-time: root.current-time;
+                total-duration: root.total-duration;
+                is-playing: root.is-playing;
+                cut-count: root.cut-count;
+                zoom-count: root.zoom-count;
+                censor-count: root.censor-count;
+                toggle-playback => { root.toggle-playback(); }
+                seek(t) => { root.seek(t); }
+                add-cut => { root.add-cut(); }
+                add-zoom => { root.add-zoom(); }
+                add-censor => { root.add-censor(); }
             }
         }
     }
