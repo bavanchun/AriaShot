@@ -14,7 +14,6 @@ impl RapidOnnxOcr {
         _width: u32,
         _height: u32,
     ) -> Result<Vec<OcrBlock>, String> {
-        // Linux RapidOCR ONNX Runtime execution hook
-        Ok(Vec::new())
+        Err("OCR is not supported on Linux yet; use macOS".into())
     }
 }

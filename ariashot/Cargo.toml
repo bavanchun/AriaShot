@@ -6,6 +6,7 @@ members = [
     "crates/camerashot-media",
     "crates/camerashot-ocr",
     "crates/camerashot-editor",
+    "crates/camerashot-cli",
 ]
 resolver = "2"
 
@@ -26,6 +27,13 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 parking_lot = "0.12"
 tiny-skia = "0.11"
 regex = "1.10"
-
-
-
+winit = "0.30"
+softbuffer = "0.4"
+arboard = "3"
+slint = "1"
+slint-build = "1"
+clap = { version = "4", features = ["derive"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+objc2 = "0.6"
+objc2-foundation = { version = "0.3.2", features = ["NSData", "NSArray", "NSString", "NSDictionary", "NSError"] }
+objc2-vision = { version = "0.3.2", features = ["VNRecognizeTextRequest", "VNRequest", "VNRequestHandler", "VNObservation", "VNTypes"] }

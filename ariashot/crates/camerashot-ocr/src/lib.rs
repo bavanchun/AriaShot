@@ -2,11 +2,13 @@ pub mod barcode;
 pub mod onnx_linux;
 pub mod redactor;
 pub mod vision_macos;
+pub mod pipeline;
 
 pub use barcode::{BarcodeDetector, BarcodeResult, BarcodeType};
 pub use onnx_linux::RapidOnnxOcr;
 pub use redactor::{PiiCategory, PiiDetector, PiiMatch, PiiRedactor};
 pub use vision_macos::{AppleVisionOcr, OcrBlock};
+pub use pipeline::{blocks_to_text, detect_redactions, mask_pii_in_text, redactions_from_blocks};
 
 /// Cross-platform OCR dispatcher that selects AppleVision on macOS and RapidOCR ONNX on Linux.
 pub struct OcrEngine {

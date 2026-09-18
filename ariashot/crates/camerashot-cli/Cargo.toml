@@ -1,0 +1,21 @@
+[package]
+name = "camerashot-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI frontend for AriaShot screenshot tool."
+
+[[bin]]
+name = "ariashot"
+path = "src/main.rs"
+
+[dependencies]
+camerashot-core = { path = "../camerashot-core" }
+camerashot-platform = { path = "../camerashot-platform" }
+camerashot-ocr = { path = "../camerashot-ocr" }
+clap = { workspace = true }
+tiny-skia = { workspace = true }
+image = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true }

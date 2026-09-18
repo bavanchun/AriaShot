@@ -12,6 +12,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 image = { workspace = true }
 parking_lot = { workspace = true }
+arboard = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.24"

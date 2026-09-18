@@ -6,4 +6,5 @@ Cargo.lock
 Thumbs.db
 ref-souce-code-macshot/
 *.png
+!ariashot/crates/**/tests/fixtures/*.png
 

@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: "Shared Foundation: deps, clipboard, Vision OCR, redact pipeline"
-status: todo
+status: done
 priority: P1
 effort: "1d"
 dependencies: []
@@ -77,14 +77,14 @@ Vision: encode RGBA → PNG bằng crate `image` → `NSData` → `VNImageReques
 
 ## Todo
 
-- [ ] Root Cargo.toml: member cli + workspace deps
-- [ ] .gitignore ngoại lệ fixture PNG
-- [ ] platform::clipboard (image + text)
-- [ ] Apple Vision OCR thật
-- [ ] Linux OCR trả lỗi rõ ràng
-- [ ] ocr::pipeline (detect_redactions, blocks_to_text, mask_pii_in_text)
-- [ ] Skeleton crate camerashot-cli build được
-- [ ] Fixture + pipeline tests xanh
+- [x] Root Cargo.toml: member cli + workspace deps
+- [x] .gitignore ngoại lệ fixture PNG
+- [x] platform::clipboard (image + text)
+- [x] Apple Vision OCR thật
+- [x] Linux OCR trả lỗi rõ ràng
+- [x] ocr::pipeline (detect_redactions, blocks_to_text, mask_pii_in_text)
+- [x] Skeleton crate camerashot-cli build được
+- [x] Fixture + pipeline tests xanh
 
 ## Success Criteria
 

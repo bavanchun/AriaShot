@@ -1,4 +1,5 @@
 pub mod input;
+pub mod clipboard;
 pub mod traits;
 
 #[cfg(target_os = "macos")]
