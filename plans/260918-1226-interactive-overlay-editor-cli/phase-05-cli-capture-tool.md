@@ -1,7 +1,7 @@
 ---
 phase: 5
 title: "CLI Capture Tool (ariashot)"
-status: todo
+status: done
 priority: P1
 effort: "0.75d"
 dependencies: [1]
@@ -82,12 +82,12 @@ Tách `run` nhận `&dyn CaptureBackend` + writer để test được với back
 
 ## Todo
 
-- [ ] Cli (clap derive) + parse_crop + RedactStyle
-- [ ] Capture full/display/crop
-- [ ] OCR một lần, redact fail-closed, render annotations
-- [ ] Xuất file (định dạng theo đuôi) / clipboard / stdout text
-- [ ] Exit codes + stderr status
-- [ ] Tests cli_tests
+- [x] Cli (clap derive) + parse_crop + RedactStyle
+- [x] Capture full/display/crop
+- [x] OCR một lần, redact fail-closed, render annotations
+- [x] Xuất file (định dạng theo đuôi) / clipboard / stdout text
+- [x] Exit codes + stderr status
+- [x] Tests cli_tests
 - [ ] Manual E2E
 
 ## Success Criteria
