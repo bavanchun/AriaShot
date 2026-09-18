@@ -1,0 +1,17 @@
+[package]
+name = "camerashot-overlay"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Lightweight Tier 1 interactive fullscreen overlay with <15ms presentation."
+
+[dependencies]
+camerashot-core = { path = "../camerashot-core" }
+camerashot-platform = { path = "../camerashot-platform" }
+tiny-skia = { workspace = true }
+image = { workspace = true }
+parking_lot = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }

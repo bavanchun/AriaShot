@@ -2,6 +2,7 @@
 members = [
     "crates/camerashot-core",
     "crates/camerashot-platform",
+    "crates/camerashot-overlay",
 ]
 resolver = "2"
 
@@ -20,3 +21,5 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
 parking_lot = "0.12"
+tiny-skia = "0.11"
+

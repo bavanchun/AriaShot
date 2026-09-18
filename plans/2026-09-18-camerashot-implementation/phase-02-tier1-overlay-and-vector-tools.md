@@ -2,7 +2,7 @@
 phase: 2
 title: "Tier 1 Fast Overlay & 18 Vector Tools"
 description: "Implement the lightweight <15ms fullscreen interactive overlay surface, the tiny-skia 2D canvas, and all 18 vector annotation tools with Chaikin smoothing."
-status: "pending"
+status: "completed"
 owner: "ui-overlay"
 ---
 
